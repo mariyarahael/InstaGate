@@ -3,89 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parent Gate Pass Registration</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .container {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 350px;
-        }
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        label {
-            font-weight: bold;
-        }
-        input, select, textarea {
-            width: 100%;
-            padding: 8px;
-            margin: 8px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        button {
-            width: 100%;
-            background: #28a745;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button:hover {
-            background: #218838;
-        }
-    </style>
+    <title>Parent Registration - InstaGate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class="container">
-        <h2>Parent Registration</h2>
-        <form action="#" method="POST">
-            <label for="name">Full Name</label>
-            <input type="text" id="name" name="name" required>
-
-            <label for="ward-name">Ward Name</label>
-            <input type="text" id="ward-name" name="ward-name" required>
-
-            <label for="department">Ward's Department</label>
-            <input type="text" id="department" name="department" required>
-
-            <label for="address">Address</label>
-            <textarea id="address" name="address" rows="3" required></textarea>
-
-            <label for="role">Role</label>
-            <select id="role" name="role" required>
-                <option value="father">Father</option>
-                <option value="mother">Mother</option>
-                <option value="guardian">Guardian</option>
-            </select>
-
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" required>
-
-            <label for="phone">Phone Number</label>
-            <input type="tel" id="phone" name="phone" required>
-
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" required>
-
-            <label for="confirm-password">Confirm Password</label>
-            <input type="password" id="confirm-password" name="confirm-password" required>
-
-            <button type="submit">Register</button>
-        </form>
+<body class="flex items-center justify-center min-h-screen bg-gray-900">
+    <div class="flex bg-gray-800 text-white rounded-xl shadow-lg w-full max-w-4xl">
+        <!-- Left Side (Image & Branding) -->
+        <div class="hidden md:flex flex-col justify-between p-8 bg-gray-700 rounded-l-xl w-1/2">
+            <h1 class="text-2xl font-bold">InstaGate</h1>
+            <div class="flex-grow flex flex-col justify-center">
+                <img src="image5.jpg" class="rounded-lg" alt="fithos">
+                <p class="mt-4 text-lg">Stay Connected with Your Ward</p>
+            </div>
+            <button class="mt-4 py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg text-sm">Back to website →</button>
+        </div>
+        
+        <!-- Right Side (Form) -->
+        <div class="w-full md:w-1/2 p-8">
+            <h2 class="text-3xl font-bold">Parent Registration</h2>
+            <p class="text-gray-400 mt-2">Already have an account? <a href="#" class="text-blue-400">Log in</a></p>
+            <form class="mt-4 space-y-4">
+                <input type="text" placeholder="Full Name" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <input type="text" placeholder="Ward Name" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <input type="text" placeholder="Ward's Department" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <textarea placeholder="Address" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" rows="3" required></textarea>
+                <select class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                    <option value="father">Father</option>
+                    <option value="mother">Mother</option>
+                    <option value="guardian">Guardian</option>
+                </select>
+                <input type="email" placeholder="Email" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <input type="tel" placeholder="Phone Number" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <input type="password" placeholder="Enter your password" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <input type="password" placeholder="Confirm Password" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <button class="w-full py-3 bg-purple-600 hover:bg-purple-500 rounded-md">Register</button>
+            </form>
+        </div>
     </div>
 </body>
 </html>
