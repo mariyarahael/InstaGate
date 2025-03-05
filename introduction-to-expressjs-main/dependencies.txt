@@ -1,0 +1,5 @@
+npm init -y
+npm install  express ejs npm install sqlite3
+npm install sequelize pg pg-hstore mysql2 passport passport-local bcryptjs express-session jsonwebtoken dotenv cookie-parser
+Run - node -e "require('./models/index');"
+to sync the table
