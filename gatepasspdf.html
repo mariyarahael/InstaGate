@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Gate Pass</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-900 text-white">
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg w-96">
+        <h2 class="text-2xl font-bold text-yellow-400 mb-4">Gate Pass</h2>
+        <p><strong>Name:</strong> <span id="studentName"></span></p>
+        <p><strong>ID:</strong> <span id="studentID"></span></p>
+        <p><strong>Destination:</strong> <span id="destination"></span></p>
+        <p><strong>Date:</strong> <span id="date"></span></p>
+        <p><strong>Time:</strong> <span id="time"></span></p>
+        <p><strong>Status:</strong> <span id="status" class="text-green-400"></span></p>
+        <button onclick="downloadPDF()" class="mt-4 w-full py-2 bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-semibold rounded-lg">Download PDF</button>
+    </div>
+
+    <script>
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFontSize(16);
+            doc.text("Gate Pass", 20, 20);
+            doc.setFontSize(12);
+            doc.text("Name: " + (document.getElementById("studentName").innerText || "Not Available"), 20, 40);
+            doc.text("ID: " + (document.getElementById("studentID").innerText || "Not Available"), 20, 50);
+            doc.text("Destination: " + (document.getElementById("destination").innerText || "Not Available"), 20, 60);
+            doc.text("Date: " + (document.getElementById("date").innerText || "Not Available"), 20, 70);
+            doc.text("Time: " + (document.getElementById("time").innerText || "Not Available"), 20, 80);
+            doc.text("Status: " + (document.getElementById("status").innerText || "Not Available"), 20, 90);
+            
+            doc.save("Gate_Pass.pdf");
+        }
+    </script>
+</body>
+</html>
