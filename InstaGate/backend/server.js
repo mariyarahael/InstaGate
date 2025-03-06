@@ -6,8 +6,10 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Connect to MongoDB
-mongoose.connect("mongodb+srv://instagate100820:MarNatIrin@cluster0.tbtgh.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", {
+// Connect to MongoDB with the 'test' database
+mongoose.connect("mongodb+srv://instagate100820:MarNatIrin@cluster0.tbtgh.mongodb.net/test?retryWrites=true&w=majority", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
 });
 
 const db = mongoose.connection;
@@ -19,7 +21,7 @@ const DataSchema = new mongoose.Schema({
   message: String,
 });
 
-const DataModel = mongoose.model("Data", DataSchema);
+const DataModel = mongoose.model("Student", DataSchema); // No need for collection name unless custom
 
 // API Routes
 app.get("/data", async (req, res) => {
