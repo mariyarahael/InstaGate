@@ -81,6 +81,79 @@ app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 
 
 
+
+
+// Define Schema & Model for parent
+const ParentSchema = new mongoose.Schema({
+  parName: { type: String, required: true },
+  childName: { type: String, required: true },
+  childDep: { type: String, required: true },
+  addressp: { type: String, required: true },
+  parRole: { type: String, required: true },
+  emailp: { type: String, required: true, unique: true },
+  phone: { type: String, required: true },
+  passwordp: { type: String, required: true },
+});
+
+const ParentModel = mongoose.model("Parent", ParentSchema);
+
+// API Routes
+
+// Register a parent
+
+app.post("/register-parent", async (req, res) => {
+  try {
+    const { parName, childName, childDep , addressp , parRole , emailp, phone, passwordp } = req.body;
+
+    // Check if email already exists
+    const existingParent = await ParentModel.findOne({ emailp });
+    if (existingParent) {
+      return res.status(400).json({ error: "Email already registered" });
+    }
+
+    const newParent = new ParentModel({ parName, childName, childDep , addressp , parRole , emailp, phone, passwordp });
+    await newParent.save();
+    
+    res.status(201).json({ message: "✅ Parent registered successfully!", parent: newParent });
+  } catch (error) {
+    res.status(500).json({ error: "❌ Error registering parent", details: error.message });
+  }
+});
+
+// Get all parents
+app.get("/parents", async (req, res) => {
+  try {
+    const parents = await ParentModel.find();
+    res.json(parents);
+  } catch (error) {
+    res.status(500).json({ error: "❌ Error fetching parents", details: error.message });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
