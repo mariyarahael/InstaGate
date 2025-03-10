@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Log</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-6">
+
+    <!-- Page Title -->
+    <h1 class="text-3xl font-bold mb-4">Student Log</h1>
+
+    <!-- Search Section -->
+    <div class="flex justify-between items-center mb-4">
+        <input type="text" id="search" placeholder="Search by Name or id" 
+               class="p-2 rounded text-black w-1/3">
+    </div>
+
+    <!-- Student Log Table -->
+    <div class="overflow-x-auto">
+        <table class="table-auto w-full border-collapse border border-gray-700">
+            <thead>
+                <tr class="bg-gray-800">
+                    <th class="border border-gray-700 p-2">Name</th>
+                    <th class="border border-gray-700 p-2">id</th>
+                    <th class="border border-gray-700 p-2">Room No</th>
+                    <th class="border border-gray-700 p-2">Gate Pass Requested Date & Time</th>
+                    <th class="border border-gray-700 p-2">Date & Time Left Campus</th>
+                </tr>
+            </thead>
+            <tbody id="studentTable">
+                <!-- Data will be inserted here dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Back Button -->
+    <a href="Warden_gatepass.html" class="text-blue-400 hover:underline mt-4 inline-block">Go Back</a>
+
+    <script>
+        // Fetch student log data from backend API
+        async function fetchStudentLogs() {
+            try {
+                let response = await fetch("http://localhost:5000/api/student-logs"); // API URL
+                let data = await response.json();
+                
+                // Sort data so the first requested student appears at the top
+                data.sort((a, b) => new Date(a.requested_time) - new Date(b.requested_time));
+                
+                const tableBody = document.getElementById("studentTable");
+                tableBody.innerHTML = ""; // Clear existing rows
+
+                data.forEach(student => {
+                    const row = document.createElement("tr");
+                    row.classList.add("bg-gray-700");
+
+                    row.innerHTML = `
+                        <td class="border border-gray-700 p-2">${student.name}</td>
+                        <td class="border border-gray-700 p-2">${student.id}</td>
+                        <td class="border border-gray-700 p-2">${student.room_no}</td>
+                        <td class="border border-gray-700 p-2">${student.requested_time}</td>
+                        <td class="border border-gray-700 p-2">${student.time_left}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error("Error fetching student logs:", error);
+            }
+        }
+
+        // Fetch data when the page loads
+        fetchStudentLogs();
+    </script>
+
+</body>
+</html>

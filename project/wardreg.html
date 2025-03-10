@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warden Registration</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-900">
+    <div class="flex bg-gray-800 text-white rounded-xl shadow-lg w-full max-w-4xl">
+        <!-- Left Side (Image & Branding) -->
+        <div class="hidden md:flex flex-col justify-between p-8 bg-gray-700 rounded-l-xl w-1/2">
+            <h1 class="text-2xl font-bold">InstaGate</h1>
+            <div class="flex-grow flex flex-col justify-center">
+                <img src="warden.jpg" class="rounded-lg" alt="warden" />
+                <p class="mt-4 text-lg">Efficient Hostel Management</p>
+            </div>
+            <button class="mt-4 py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg text-sm">Back to website →</button>
+        </div>
+        
+        <!-- Right Side (Form) -->
+        <div class="w-full md:w-1/2 p-8">
+            <h2 class="text-3xl font-bold">Warden Registration</h2>
+            <p class="text-gray-400 mt-2">Already have an account? <a href="#" class="text-blue-400">Log in</a></p>
+            <form class="mt-4 space-y-4" onsubmit="handleSubmit(event)">
+                <input type="text" name="fullName" placeholder="Full Name" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <input type="text" name="employeeId" placeholder="Employee ID" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <input type="text" name="designation" placeholder="Designation" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <input type="text" name="hostelId" placeholder="Hostel Name/ID" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <input type="email" name="email" placeholder="Email" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <input type="tel" name="phone" placeholder="Phone" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <input type="password" name="password" placeholder="Password" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <input type="password" name="confirmPassword" placeholder="Confirm Password" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <button type="submit" class="w-full py-3 bg-purple-600 hover:bg-purple-500 rounded-md font-bold text-white">Register</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function handleSubmit(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+            console.log("Form Submitted", data);
+        }
+    </script>
+</body>
+</html>
