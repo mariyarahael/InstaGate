@@ -133,8 +133,50 @@ app.get("/parents", async (req, res) => {
 
 
 
+// Define Schema & Model for warden
+const WardenSchema = new mongoose.Schema({
+  warName: { type: String, required: true },
+  warAddress: { type: String, required: true },
+  hosNameWar: { type: String, required: true },
+  emailw: { type: String, required: true, unique: true },
+  phonew: { type: String, required: true },
+  passwordw: { type: String, required: true },
+});
 
+const WardenModel = mongoose.model("Warden", WardenSchema);
 
+// API Routes
+
+// Register a warden
+
+app.post("/register-warden", async (req, res) => {
+  try {
+    const { warName, warAddress, hosNameWar, emailw, phonew, passwordw } = req.body;
+
+    // Check if email already exists
+    const existingWarden = await WardenModel.findOne({ emailw });
+    if (existingWarden) {
+      return res.status(400).json({ error: "Email already registered" });
+    }
+
+    const newWarden = new WardenModel({ warName, warAddress, hosNameWar, emailw, phonew, passwordw });
+    await newWarden.save();
+    
+    res.status(201).json({ message: "✅ Warden registered successfully!", warden: newWarden });
+  } catch (error) {
+    res.status(500).json({ error: "❌ Error registering warden", details: error.message });
+  }
+});
+
+// Get all wardens
+app.get("/wardens", async (req, res) => {
+  try {
+    const wardens = await WardenModel.find();
+    res.json(wardens);
+  } catch (error) {
+    res.status(500).json({ error: "❌ Error fetching wardens", details: error.message });
+  }
+});
 
 
 
