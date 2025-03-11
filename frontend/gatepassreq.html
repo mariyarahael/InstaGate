@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gate Pass Request</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-900">
+
+    <div class="bg-gray-800 text-white p-8 rounded-xl shadow-lg w-full max-w-lg">
+        <h2 class="text-2xl font-bold text-center text-blue-400">Gate Pass Request</h2>
+
+        <form id="gatePassForm" class="mt-6 space-y-4">
+            <!-- Request Date (Auto-filled) -->
+            <div>
+                <label class="block text-sm font-medium">Request Date</label>
+                <input type="date" id="requestDate" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600" readonly>
+            </div>
+
+            <!-- Request Time (Auto-filled, 12-hour format) -->
+            <div>
+                <label class="block text-sm font-medium">Request Time</label>
+                <input type="text" id="requestTime" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600" readonly>
+            </div>
+
+            <!-- Reason (Max 200 characters) -->
+            <div>
+                <label class="block text-sm font-medium">Reason (Max 200 chars)</label>
+                <textarea id="reason" maxlength="200" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600"></textarea>
+            </div>
+
+            <!-- Going Date -->
+            <div>
+                <label class="block text-sm font-medium">Going Date</label>
+                <input type="date" id="goingDate" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600">
+            </div>
+
+            <!-- Going Time (12-hour format) -->
+            <div>
+                <label class="block text-sm font-medium">Going Time</label>
+                <input type="time" id="goingTime" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600">
+                <p id="goingTimeFormatted" class="text-gray-400 text-sm mt-1"></p> 
+            </div>
+
+            <!-- Return Date -->
+            <div>
+                <label class="block text-sm font-medium">Return Date</label>
+                <input type="date" id="returnDate" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600">
+            </div>
+
+            <!-- Place -->
+            <div>
+                <label class="block text-sm font-medium">Place</label>
+                <input type="text" id="place" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600">
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-md font-semibold">
+                Submit Request
+            </button>
+        </form>
+
+        <p id="errorMessage" class="text-red-400 text-sm mt-4 hidden"></p>
+    </div>
+
+    <script>
+        // Function to format time in 12-hour format with AM/PM
+        function formatTimeTo12Hour(hours, minutes) {
+            let ampm = hours >= 12 ? "PM" : "AM";
+            hours = hours % 12 || 12; // Convert 0 to 12 for AM/PM format
+            return `${hours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+        }
+
+        // Function to set the current date and time in 12-hour format
+        function setCurrentDateTime() {
+            const now = new Date();
+
+            // Format date as YYYY-MM-DD
+            document.getElementById("requestDate").value = now.toISOString().split("T")[0];
+
+            // Format time as HH:MM AM/PM
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            document.getElementById("requestTime").value = formatTimeTo12Hour(hours, minutes);
+        }
+
+        // Auto-format going time when selected
+        document.getElementById("goingTime").addEventListener("input", function() {
+            let timeValue = this.value;
+            if (timeValue) {
+                let [hours, minutes] = timeValue.split(":").map(Number);
+                document.getElementById("goingTimeFormatted").textContent = `Selected Time: ${formatTimeTo12Hour(hours, minutes)}`;
+            } else {
+                document.getElementById("goingTimeFormatted").textContent = "";
+            }
+        });
+
+        // Set Request Date and Request Time on page load
+        document.addEventListener("DOMContentLoaded", setCurrentDateTime);
+
+        document.getElementById("gatePassForm").addEventListener("submit", function(event) {
+            event.preventDefault(); // Prevent form submission
+            
+            // Get values
+            let reason = document.getElementById("reason").value.trim();
+            let goingDate = document.getElementById("goingDate").value;
+            let goingTime = document.getElementById("goingTime").value.trim();
+            let returnDate = document.getElementById("returnDate").value;
+            let place = document.getElementById("place").value.trim();
+            let errorMessage = document.getElementById("errorMessage");
+
+            // Validation
+            if (!reason || !goingDate || !goingTime || !returnDate || !place) {
+                errorMessage.textContent = "All fields are required!";
+                errorMessage.classList.remove("hidden");
+                return;
+            }
+
+            if (new Date(returnDate) < new Date(goingDate)) {
+                errorMessage.textContent = "Return date must be after the going date!";
+                errorMessage.classList.remove("hidden");
+                return;
+            }
+
+            // Success
+            alert("Gate Pass Request Submitted Successfully!");
+            errorMessage.classList.add("hidden");
+            document.getElementById("gatePassForm").reset();
+
+            // Refill request date & request time after reset
+            setCurrentDateTime();
+            document.getElementById("goingTimeFormatted").textContent = "";
+        });
+    </script>
+
+</body>
+</html>

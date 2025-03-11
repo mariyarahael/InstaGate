@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gate Pass Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-1/5 bg-gray-800 p-6 flex flex-col space-y-6">
+            <h2 class="text-2xl font-bold text-yellow-400">Dashboard</h2>
+            <nav class="space-y-4">
+                <a href="#" class="block p-3 bg-gray-700 rounded-lg hover:bg-yellow-400 hover:text-gray-900">🏠 Dashboard</a>
+                <a href="#" class="block p-3 bg-gray-700 rounded-lg hover:bg-yellow-400 hover:text-gray-900">📜 Request Gate Pass</a>
+                <a href="#" class="block p-3 bg-gray-700 rounded-lg hover:bg-yellow-400 hover:text-gray-900">📥 Download Gate Pass</a>
+                <a href="#" class="block p-3 bg-gray-700 rounded-lg hover:bg-yellow-400 hover:text-gray-900">🚖 Cab Booking</a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-6">
+            <h1 class="text-3xl font-bold mb-6">Gate Pass Overview</h1>
+            <div class="grid grid-cols-3 gap-6">
+                <!-- Graph -->
+                <div class="bg-gray-800 p-6 rounded-lg col-span-2">
+                    <h2 class="text-xl font-semibold mb-4">Gate Pass Requests (This Month)</h2>
+                    <canvas id="barChart"></canvas>
+                </div>
+
+                <!-- Circle Chart -->
+                <div class="bg-gray-800 p-6 rounded-lg">
+                    <h2 class="text-xl font-semibold mb-4">Gate Pass Status</h2>
+                    <canvas id="doughnutChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Gate Pass List -->
+            <div class="bg-gray-800 p-6 rounded-lg mt-6">
+                <h2 class="text-xl font-semibold mb-4">All Gate Pass Requests</h2>
+                <ul id="gatePassList" class="space-y-3"></ul>
+            </div>
+
+            <!-- Pending Gate Pass Requests -->
+            <div class="bg-gray-800 p-6 rounded-lg mt-6">
+                <h2 class="text-xl font-semibold">Pending Gate Pass Requests: <span id="pendingCount" class="text-yellow-400">Loading...</span></h2>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Placeholder for database data (to be replaced with fetched values later)
+        let gatePassData = {
+            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+            data: [0, 0, 0, 0] // Will be updated later
+        };
+
+        let statusData = {
+            requested: 0, // Will be updated later
+            accepted: 0
+        };
+
+        let gatePassList = []; // Will be updated later
+
+        // Render Bar Chart
+        new Chart(document.getElementById('barChart'), {
+            type: 'bar',
+            data: {
+                labels: gatePassData.labels,
+                datasets: [{
+                    label: 'Gate Pass Requests',
+                    data: gatePassData.data,
+                    backgroundColor: 'rgba(255, 206, 86, 0.7)',
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        // Render Doughnut Chart
+        new Chart(document.getElementById('doughnutChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Requested', 'Accepted'],
+                datasets: [{
+                    data: [statusData.requested, statusData.accepted],
+                    backgroundColor: ['rgba(255, 206, 86, 0.7)', 'rgba(54, 162, 235, 0.7)']
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        // Populate Gate Pass List
+        function renderGatePassList() {
+            document.getElementById('gatePassList').innerHTML = gatePassList.length > 0 
+                ? gatePassList.map(pass => `<li class="p-3 bg-gray-700 rounded-lg">📅 ${pass.date} - ⏰ ${pass.time} - ${pass.status}</li>`).join('')
+                : '<p>No requests yet.</p>';
+            
+            document.getElementById('pendingCount').textContent = gatePassList.filter(p => p.status === 'Pending').length;
+        }
+
+        renderGatePassList(); // Call initially with placeholder values
+    </script>
+</body>
+</html>

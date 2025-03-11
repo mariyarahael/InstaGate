@@ -26,9 +26,9 @@
                 <input type="text" id="warName" placeholder="Full Name" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
                 <textarea id="warAddress" placeholder="Address" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" rows="3" required></textarea>
                 <input type="text" id="hosNameWar" placeholder="Hostel Name" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
-                <input type="email" id="emailw" placeholder="Email" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
-                <input type="tel" id="phonew" placeholder="Phone Number" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
-                <input type="password" id="passwordw" placeholder="Enter your password" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <input type="email" id="email" placeholder="Email" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <input type="tel" id="phone" placeholder="Phone Number" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <input type="password" id="password" placeholder="Enter your password" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
                 <input type="password" id="conPasswordw" placeholder="Confirm Password" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
                 <button type="submit" class="w-full py-3 bg-purple-600 hover:bg-purple-500 rounded-md">Register</button>
             </form>
@@ -42,12 +42,12 @@
             const warName = document.getElementById("warName").value;
             const warAddress = document.getElementById("warAddress").value;
             const hosNameWar = document.getElementById("hosNameWar").value;
-            const emailw = document.getElementById("emailw").value;
-            const phonew = document.getElementById("phonew").value;
-            const passwordw = document.getElementById("passwordw").value;
+            const email = document.getElementById("email").value;
+            const phone = document.getElementById("phone").value;
+            const password = document.getElementById("password").value;
             const conPasswordw = document.getElementById("conPasswordw").value;
 
-            if (passwordw !== conPasswordw) {
+            if (password !== conPasswordw) {
                 alert("Passwords do not match!");
                 return;
             }
@@ -57,7 +57,7 @@
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ warName, warAddress, hosNameWar, emailw, phonew, passwordw })
+                body: JSON.stringify({ warName, warAddress, hosNameWar, email, phone, password })
             });
 
             const result = await response.json();

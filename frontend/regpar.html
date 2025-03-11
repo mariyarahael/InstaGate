@@ -32,9 +32,9 @@
                     <option value="mother">Mother</option>
                     <option value="guardian">Guardian</option>
                 </select>
-                <input type="email" id ="emailp" placeholder="Email" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <input type="email" id ="email" placeholder="Email" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
                 <input type="tel" id="phone" placeholder="Phone Number" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
-                <input type="password" id="passwordp" placeholder="Enter your password" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <input type="password" id="password" placeholder="Enter your password" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
                 <input type="password" id="conPassword" placeholder="Confirm Password" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
                 <button type="submit" class="w-full py-3 bg-purple-600 hover:bg-purple-500 rounded-md">Register</button>
             </form>
@@ -50,12 +50,12 @@
             const childDep = document.getElementById("childDep").value;
             const addressp = document.getElementById("addressp").value;
             const parRole = document.getElementById("parRole").value;
-            const emailp = document.getElementById("emailp").value;
+            const email = document.getElementById("email").value;
             const phone = document.getElementById("phone").value;
-            const passwordp = document.getElementById("passwordp").value;
+            const password = document.getElementById("password").value;
             const conPassword = document.getElementById("conPassword").value;
 
-            if (passwordp !== conPassword) {
+            if (password !== conPassword) {
                 alert("Passwords do not match!");
                 return;
             }
@@ -65,7 +65,7 @@
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ parName, childName, childDep , addressp , parRole , emailp , phone, passwordp })
+                body: JSON.stringify({ parName, childName, childDep , addressp , parRole , email , phone, password })
             });
 
             const result = await response.json();

@@ -15,10 +15,94 @@
                 <img src="image5.jpg" class="rounded-lg" alt="fithos">
                 <p class="mt-4 text-lg">Secure & Seamless Login</p>
             </div>
-            <button class="mt-4 py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg text-sm">Back to website →</button>
+            <button onclick="window.location.href='index.html'" class="mt-4 py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg text-sm">Back to website →</button>
         </div>
         
         <!-- Right Side (Form) -->
+        <div class="w-full md:w-1/2 p-8">
+            <h2 class="text-3xl font-bold">Welcome Back</h2>
+            <p class="text-gray-400 mt-2">Don't have an account? <a href="reg.html" class="text-blue-400">Sign up</a></p>
+            
+            <form id="loginForm" class="mt-4 space-y-4">
+                <input type="email" id="email" placeholder="Email" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <input type="password" id="password" placeholder="Password" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <button type="submit" class="w-full py-3 bg-purple-600 hover:bg-purple-500 rounded-md">Login</button>
+            </form>
+
+            <p id="errorMessage" class="text-red-400 mt-2 hidden"></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const errorMessage = document.getElementById("errorMessage");
+
+            try {
+                const response = await fetch("http://localhost:5000/login", { // Updated API URL
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || "Login failed");
+                }
+
+                // Store JWT token in localStorage for session management
+                localStorage.setItem("token", result.token);
+                localStorage.setItem("role", result.role);
+
+                // Redirect based on user role
+                if (result.role === "student") {
+                    window.location.href = "studentportal.html";
+                } else if (result.role === "parent") {
+                    window.location.href = "parentportal.html";
+                } else if (result.role === "warden") {
+                    window.location.href = "wardenportal.html";
+                } else {
+                    throw new Error("Invalid user role");
+                }
+            } catch (error) {
+                errorMessage.textContent = error.message;
+                errorMessage.classList.remove("hidden");
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+<!----
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - InstaGate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-900">
+    <div class="flex bg-gray-800 text-white rounded-xl shadow-lg w-full max-w-4xl">
+        <!- Left Side (Image & Branding) -->   <!----
+        <div class="hidden md:flex flex-col justify-between p-8 bg-gray-700 rounded-l-xl w-1/2">
+            <h1 class="text-2xl font-bold">InstaGate</h1>
+            <div class="flex-grow flex flex-col justify-center">
+                <img src="image5.jpg" class="rounded-lg" alt="fithos">
+                <p class="mt-4 text-lg">Secure & Seamless Login</p>
+            </div>
+            <button class="mt-4 py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg text-sm">Back to website →</button>
+        </div>
+        
+        <!- Right Side (Form) --> <!----
         <div class="w-full md:w-1/2 p-8">
             <h2 class="text-3xl font-bold">Welcome Back</h2>
             <p class="text-gray-400 mt-2">Don't have an account? <a href="reg.html" class="text-blue-400">Sign up</a></p>
@@ -48,3 +132,6 @@
     </div>
 </body>
 </html>
+
+
+ ---->
