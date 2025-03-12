@@ -15,7 +15,7 @@
             <nav class="space-y-4">
                 <a href="#" class="block p-3 bg-gray-700 rounded-lg hover:bg-yellow-400 hover:text-gray-900">🏠 Dashboard</a>
                 <a href="#" class="block p-3 bg-gray-700 rounded-lg hover:bg-yellow-400 hover:text-gray-900">📜 Gate Pass Requests</a>
-                <a href="#" class="block p-3 bg-gray-700 rounded-lg hover:bg-yellow-400 hover:text-gray-900">✅ Sanction Requests</a>
+                <a href="parentsanction.html" class="block p-3 bg-gray-700 rounded-lg hover:bg-yellow-400 hover:text-gray-900">✅ Sanction Requests</a>
             </nav>
         </div>
 
@@ -27,6 +27,12 @@
                 <div class="bg-gray-800 p-6 rounded-lg col-span-2">
                     <h2 class="text-xl font-semibold mb-4">Gate Pass Requests (This Month)</h2>
                     <canvas id="barChart"></canvas>
+                </div>
+
+                <!-- Sanction Requests -->
+                <div class="bg-gray-800 p-6 rounded-lg">
+                    <h2 class="text-xl font-semibold mb-4">Pending Sanctions</h2>
+                    <ul id="pendingList" class="space-y-3"></ul>
                 </div>
             </div>
 
@@ -40,7 +46,13 @@
 
     <script>
         // Placeholder Data (To be retrieved from DB later)
-        let gatePassData = { labels: [], data: [] };
+        let gatePassData = {
+            labels: [],
+            data: []
+        };
+
+        let gatePassList = []; // To be updated with real data
+        let pendingSanctions = []; // To be updated with real data
 
         // Render Bar Chart
         new Chart(document.getElementById('barChart'), {
@@ -57,6 +69,32 @@
             },
             options: { responsive: true }
         });
+
+        // Populate Gate Pass List
+        function renderGatePassList() {
+            document.getElementById('gatePassList').innerHTML = gatePassList.length > 0 
+                ? gatePassList.map(pass => `<li class='p-3 bg-gray-700 rounded-lg'>📅 ${pass.date} - ⏰ ${pass.time} - ${pass.status}</li>`).join('')
+                : '<p>No requests yet.</p>';
+        }
+
+        // Populate Pending Sanctions
+        function renderPendingSanctions() {
+            document.getElementById('pendingList').innerHTML = pendingSanctions.length > 0 
+                ? pendingSanctions.map(pass => `<li class='p-3 bg-gray-700 rounded-lg flex justify-between'>
+                    ${pass.student} - ${pass.date} 
+                    <a href="sanction_gate_pass.html?requestDate=${pass.date}&reason=${pass.reason}&goingDate=${pass.goingDate}&returnDate=${pass.returnDate}&place=${pass.place}" class='bg-green-500 px-3 py-1 rounded-lg'>Sanction</a>
+                </li>`).join('')
+                : '<p>No pending sanctions.</p>';
+        }
+
+        function sanctionPass(id) {
+            alert(`Gate Pass ID ${id} Sanctioned! (DB update required)`);
+            pendingSanctions = pendingSanctions.filter(pass => pass.id !== id);
+            renderPendingSanctions();
+        }
+
+        renderGatePassList();
+        renderPendingSanctions();
     </script>
 </body>
 </html>
