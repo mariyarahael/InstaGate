@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parent Portal - Gate Pass</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-1/5 bg-gray-800 p-6 flex flex-col space-y-6">
+            <h2 class="text-2xl font-bold text-yellow-400">Parent Portal</h2>
+            <nav class="space-y-4">
+                <a href="#" class="block p-3 bg-gray-700 rounded-lg hover:bg-yellow-400 hover:text-gray-900">🏠 Dashboard</a>
+                <a href="#" class="block p-3 bg-gray-700 rounded-lg hover:bg-yellow-400 hover:text-gray-900">📜 Gate Pass Requests</a>
+                <a href="#" class="block p-3 bg-gray-700 rounded-lg hover:bg-yellow-400 hover:text-gray-900">✅ Sanction Requests</a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-6">
+            <h1 class="text-3xl font-bold mb-6">Gate Pass Overview</h1>
+            <div class="grid grid-cols-3 gap-6">
+                <!-- Graph -->
+                <div class="bg-gray-800 p-6 rounded-lg col-span-2">
+                    <h2 class="text-xl font-semibold mb-4">Gate Pass Requests (This Month)</h2>
+                    <canvas id="barChart"></canvas>
+                </div>
+
+                <!-- Sanction Requests -->
+                <div class="bg-gray-800 p-6 rounded-lg">
+                    <h2 class="text-xl font-semibold mb-4">Pending Sanctions</h2>
+                    <ul id="pendingList" class="space-y-3"></ul>
+                </div>
+            </div>
+
+            <!-- Gate Pass List -->
+            <div class="bg-gray-800 p-6 rounded-lg mt-6">
+                <h2 class="text-xl font-semibold mb-4">All Gate Pass Requests</h2>
+                <ul id="gatePassList" class="space-y-3"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Placeholder Data (To be retrieved from DB later)
+        let gatePassData = {
+            labels: [],
+            data: []
+        };
+
+        let gatePassList = []; // To be updated with real data
+        let pendingSanctions = []; // To be updated with real data
+
+        // Render Bar Chart
+        new Chart(document.getElementById('barChart'), {
+            type: 'bar',
+            data: {
+                labels: gatePassData.labels,
+                datasets: [{
+                    label: 'Gate Pass Requests',
+                    data: gatePassData.data,
+                    backgroundColor: 'rgba(255, 206, 86, 0.7)',
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        // Populate Gate Pass List
+        function renderGatePassList() {
+            document.getElementById('gatePassList').innerHTML = gatePassList.length > 0 
+                ? gatePassList.map(pass => `<li class='p-3 bg-gray-700 rounded-lg'>📅 ${pass.date} - ⏰ ${pass.time} - ${pass.status}</li>`).join('')
+                : '<p>No requests yet.</p>';
+        }
+
+        // Populate Pending Sanctions
+        function renderPendingSanctions() {
+            document.getElementById('pendingList').innerHTML = pendingSanctions.length > 0 
+                ? pendingSanctions.map(pass => `<li class='p-3 bg-gray-700 rounded-lg flex justify-between'>
+                    ${pass.student} - ${pass.date} 
+                    <button class='bg-green-500 px-3 py-1 rounded-lg' onclick='sanctionPass(${pass.id})'>Sanction</button>
+                </li>`).join('')
+                : '<p>No pending sanctions.</p>';
+        }
+
+        function sanctionPass(id) {
+            alert(`Gate Pass ID ${id} Sanctioned! (DB update required)`);
+            pendingSanctions = pendingSanctions.filter(pass => pass.id !== id);
+            renderPendingSanctions();
+        }
+
+        renderGatePassList();
+        renderPendingSanctions();
+    </script>
+</body>
+</html>
