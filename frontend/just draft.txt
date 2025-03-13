@@ -1,136 +1,65 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const dotenv = require("dotenv");
-const bcrypt = require("bcrypt");
+<!-- Right Side (Form) -->
+ <div class="w-full md:w-1/2 p-8">
+    <h2 class="text-3xl font-bold">Parent Registration</h2>
+    <p class="text-gray-400 mt-2">Already have an account? <a href="login.html" class="text-blue-400">Log in</a></p>
+    <form id="parregform" class="mt-4 space-y-4">
+        <input type="text" id="parName" placeholder="Full Name" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+        <input type="text" id="childName" placeholder="Ward Name" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+        <input type="text" id="childDep" placeholder="Ward's Department" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+        <textarea id="addressp" placeholder="Address" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" rows="3" required></textarea>
+        <select id="parRole" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+            <option value="father">Father</option>
+            <option value="mother">Mother</option>
+            <option value="guardian">Guardian</option>
+        </select>
+        <input type="email" id ="email" placeholder="Email" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+        <input type="tel" id="phone" placeholder="Phone Number" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+        <input type="password" id="password" placeholder="Enter your password" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+        <input type="password" id="conPassword" placeholder="Confirm Password" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+        <button type="submit" class="w-full py-3 bg-purple-600 hover:bg-purple-500 rounded-md">Register</button>
+    </form>
+</div>
+</div>
 
-// Load environment variables
-dotenv.config();
+<script>
+document.getElementById("parregform").addEventListener("submit", async function(event) {
+    event.preventDefault();
 
-const app = express();
-app.use(express.json());
-app.use(cors());
+    const parName = document.getElementById("parName").value;
+    const childName = document.getElementById("childName").value;
+    const childDep = document.getElementById("childDep").value;
+    const addressp = document.getElementById("addressp").value;
+    const parRole = document.getElementById("parRole").value;
+    const email = document.getElementById("email").value;
+    const phone = document.getElementById("phone").value;
+    const password = document.getElementById("password").value;
+    const conPassword = document.getElementById("conPassword").value;
 
-// Get MongoDB URI from .env file
-const MONGO_URI = process.env.MONGO_URI;
-const PORT = process.env.PORT || 5000;
+    if (password !== conPassword) {
+        alert("Passwords do not match!");
+        return;
+    }
 
-if (!MONGO_URI) {
-  console.error("❌ MONGO_URI is not defined. Check your .env file.");
-  process.exit(1);
-}
-
-// Connect to MongoDB
-mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log("✅ Connected to MongoDB"))
-    .catch(err => {
-        console.error("❌ MongoDB connection error:", err);
-        process.exit(1);
+    const response = await fetch("http://localhost:5000/register-parent", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ parName, childName, childDep , addressp , parRole , email , phone, password })
     });
 
-// Define Student Schema
-const StudentSchema = new mongoose.Schema({
-    fullName: { type: String, required: true },
-    studyYear: { type: String, required: true },
-    department: { type: String, required: true },
-    address: { type: String, required: true },
-    hostelName: { type: String, required: true },
-    hostelRoom: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    phoneNumber: { type: String, required: true },
-    password: { type: String, required: true },
-});
-
-const StudentModel = mongoose.model("Student", StudentSchema);
-
-// Define Parent Schema
-const ParentSchema = new mongoose.Schema({
-    parName: { type: String, required: true },
-    childName: { type: String, required: true },
-    childDep: { type: String, required: true },
-    address: { type: String, required: true },
-    parRole: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    phone: { type: String, required: true },
-    password: { type: String, required: true },
-});
-
-const ParentModel = mongoose.model("Parent", ParentSchema);
-
-// Register Student (POST /register)
-app.post("/register", async (req, res) => {
-    try {
-        const { fullName, studyYear, department, address, hostelName, hostelRoom, email, phoneNumber, password } = req.body;
-
-        const existingStudent = await StudentModel.findOne({ email });
-        if (existingStudent) {
-            return res.status(400).json({ error: "Email already registered" });
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const newStudent = new StudentModel({
-            fullName, studyYear, department, address, hostelName, hostelRoom, email, phoneNumber, password: hashedPassword
-        });
-
-        await newStudent.save();
-        res.status(201).json({ message: "✅ Student registered successfully!", student: newStudent });
-    } catch (error) {
-        res.status(500).json({ error: "❌ Error registering student", details: error.message });
+    const result = await response.json();
+    if (response.ok) {
+        alert(result.message);
+        window.location.href = "login.html";
+    } else {
+        alert(result.error);
     }
 });
+</script>
 
-// Register Parent (POST /register-parent)
-app.post("/register-parent", async (req, res) => {
-    try {
-        const { parName, childName, childDep, address, parRole, email, phone, password } = req.body;
-
-        const existingParent = await ParentModel.findOne({ email });
-        if (existingParent) {
-            return res.status(400).json({ error: "Email already registered" });
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const newParent = new ParentModel({
-            parName, childName, childDep, address, parRole, email, phone, password: hashedPassword
-        });
-
-        await newParent.save();
-        res.status(201).json({ message: "✅ Parent registered successfully!", parent: newParent });
-    } catch (error) {
-        res.status(500).json({ error: "❌ Error registering parent", details: error.message });
-    }
-});
-
-// Get all students (GET /students)
-app.get("/students", async (req, res) => {
-    try {
-        const students = await StudentModel.find();
-        res.json(students);
-    } catch (error) {
-        res.status(500).json({ error: "❌ Error fetching students", details: error.message });
-    }
-});
-
-// Get all parents (GET /parents)
-app.get("/parents", async (req, res) => {
-    try {
-        const parents = await ParentModel.find();
-        res.json(parents);
-    } catch (error) {
-        res.status(500).json({ error: "❌ Error fetching parents", details: error.message });
-    }
-});
-
-// Start server (Only One)
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-
-
-
-
-
-
+</body>
+</html>
 
 
 

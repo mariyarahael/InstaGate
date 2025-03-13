@@ -24,6 +24,7 @@
             <p class="text-gray-400 mt-2">Already have an account? <a href="login.html" class="text-blue-400">Log in</a></p>
             <form id="parregform" class="mt-4 space-y-4">
                 <input type="text" id="parName" placeholder="Full Name" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <input type="text" id="admno" placeholder="Ward Admission No" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
                 <input type="text" id="childName" placeholder="Ward Name" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
                 <input type="text" id="childDep" placeholder="Ward's Department" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
                 <textarea id="addressp" placeholder="Address" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" rows="3" required></textarea>
@@ -43,39 +44,42 @@
 
     <script>
         document.getElementById("parregform").addEventListener("submit", async function(event) {
-            event.preventDefault();
+    event.preventDefault();
 
-            const parName = document.getElementById("parName").value;
-            const childName = document.getElementById("childName").value;
-            const childDep = document.getElementById("childDep").value;
-            const addressp = document.getElementById("addressp").value;
-            const parRole = document.getElementById("parRole").value;
-            const email = document.getElementById("email").value;
-            const phone = document.getElementById("phone").value;
-            const password = document.getElementById("password").value;
-            const conPassword = document.getElementById("conPassword").value;
+    const parName = document.getElementById("parName").value;
+    const childName = document.getElementById("childName").value;
+    const admno = document.getElementById("admno").value; // ✅ Fix: Added admno
+    const childDep = document.getElementById("childDep").value;
+    const addressp = document.getElementById("addressp").value;
+    const parRole = document.getElementById("parRole").value;
+    const email = document.getElementById("email").value;
+    const phone = document.getElementById("phone").value;
+    const password = document.getElementById("password").value;
+    const conPassword = document.getElementById("conPassword").value;
 
-            if (password !== conPassword) {
-                alert("Passwords do not match!");
-                return;
-            }
+    if (password !== conPassword) {
+        alert("❌ Passwords do not match!");
+        return;
+    }
 
-            const response = await fetch("http://localhost:5000/register-parent", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ parName, childName, childDep , addressp , parRole , email , phone, password })
-            });
+    const response = await fetch("http://localhost:5000/register-parent", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ parName, childName, admno, childDep, addressp, parRole, email, phone, password }) // ✅ Fix: Sending admno
+    });
 
-            const result = await response.json();
-            if (response.ok) {
-                alert(result.message);
-                window.location.href = "login.html";
-            } else {
-                alert(result.error);
-            }
-        });
+    const result = await response.json();
+    if (response.ok) {
+        alert(result.message);
+        window.location.href = "login.html";
+    } else {
+        alert(result.error);
+    }
+});
+
+           
     </script>
 
 </body>

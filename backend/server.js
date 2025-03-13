@@ -37,6 +37,7 @@ mongoose
 // Student Schema
 const StudentSchema = new mongoose.Schema({
   fullName: { type: String, required: true },
+  admno:{type: String, required:true, unique:true},
   studyYear: { type: String, required: true },
   department: { type: String, required: true },
   address: { type: String, required: true },
@@ -52,14 +53,15 @@ const StudentModel = mongoose.model("Student", StudentSchema);
 // Parent Schema
 const ParentSchema = new mongoose.Schema({
   parName: { type: String, required: true },
-  childName: { type: String, required: true },
-  childDep: { type: String, required: true },
+  childName: { type: String, required: true }, // Auto-filled from Student
+  admno: { type: mongoose.Schema.Types.ObjectId, ref: "Student", required: true }, // ✅ Fix: Reference to Student
+  childDep: { type: String, required: true }, // Auto-filled from Student
   addressp: { type: String, required: true },
   parRole: { type: String, required: true },
-  email: { type: String, required: true, unique: true }, // Changed `emailp` to `email` for consistency
+  email: { type: String, required: true, unique: true },
   phone: { type: String, required: true },
-  password: { type: String, required: true }, // Hashed Password
-  role: { type: String, default: "parent" } // Assigning Role
+  password: { type: String, required: true },
+  role: { type: String, default: "parent" }
 });
 const ParentModel = mongoose.model("Parent", ParentSchema);
 
@@ -80,7 +82,7 @@ const WardenModel = mongoose.model("Warden", WardenSchema);
 // 🔹 Register Student
 app.post("/register", async (req, res) => {
   try {
-    const { fullName, studyYear, department, address, hostelName, hostelRoom, email, phoneNumber, password } = req.body;
+    const { fullName, admno, studyYear, department, address, hostelName, hostelRoom, email, phoneNumber, password } = req.body;
 
     // Check if email already exists
     if (await StudentModel.findOne({ email })) {
@@ -88,7 +90,7 @@ app.post("/register", async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10); // Hash password
-    const newStudent = new StudentModel({ fullName, studyYear, department, address, hostelName, hostelRoom, email, phoneNumber, password: hashedPassword });
+    const newStudent = new StudentModel({ fullName, admno , studyYear, department, address, hostelName, hostelRoom, email, phoneNumber, password: hashedPassword });
     
     await newStudent.save();
     res.status(201).json({ message: "✅ Student registered successfully!" });
@@ -98,23 +100,100 @@ app.post("/register", async (req, res) => {
 });
 
 // 🔹 Register Parent
-app.post("/register-parent", async (req, res) => {
-  try {
-    const { parName, childName, childDep, addressp, parRole, email, phone, password } = req.body;
 
-    if (await ParentModel.findOne({ email })) {
-      return res.status(400).json({ error: "Email already registered" });
+const registerParent = async (req, res) => {
+  try {
+    const { parName, admno, email, phone, password, addressp, parRole, childName, childDep } = req.body;
+
+    // ✅ Check if email is provided
+    if (!email) {
+      return res.status(400).json({ error: "Email is required for parent registration." });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newParent = new ParentModel({ parName, childName, childDep, addressp, parRole, email, phone, password: hashedPassword });
+    // 1️⃣ Find the Student using `admno`
+    const student = await StudentModel.findOne({ admno: admno });
 
-    await newParent.save();
-    res.status(201).json({ message: "✅ Parent registered successfully!" });
+    if (!student) {
+      return res.status(400).json({ error: "No student found with this admission number." });
+    }
+   /*
+    // 2️⃣ Check if parent-entered values match student data
+    if (childName !== student.fullName) {
+      return res.status(400).json({ error: "Child name does not match our records." });
+    }
+
+    if (childDep !== student.department) {
+      return res.status(400).json({ error: "Child department does not match our records." });
+    }
+  */
+    // 3️⃣ Use the Student's `_id` instead of `admno`
+    const parent = new ParentModel({
+      parName,
+      childName: student.fullName, // Use actual student name
+      admno: student._id, // Store Student's `_id`, not `admno`
+      childDep: student.department, // Use actual student department
+      addressp,
+      parRole,
+      email,
+      phone,
+      password: await bcrypt.hash(password, 10),
+    });
+
+    await parent.save();
+    res.status(201).json({ message: "Parent registered successfully!" });
+
   } catch (error) {
     res.status(500).json({ error: "❌ Error registering parent", details: error.message });
   }
-});
+};
+
+
+// ✅ ADD THIS ROUTE
+app.post("/register-parent", registerParent);
+
+//const parent = await ParentModel.findOne({ email: "parent@example.com" }).populate("admno");
+//console.log(parent);
+
+
+/*
+app.post("/register-parent", async (req, res) => {
+  try {
+    const { parName, admno, addressp, parRole, email, phone, password } = req.body;
+
+    // ✅ Fix: Check if student exists with the given admno
+    const student = await StudentModel.findOne({ admno });
+    if (!student) {
+      return res.status(404).json({ error: "❌ No student found with this admission number" });
+    }
+
+    // ✅ Fix: Check if parent email is already registered
+     if (await ParentModel.findOne({ email })) {
+        return res.status(400).json({ error: "❌ Email already registered" });
+      }
+
+    // ✅ Fix: Hash the password before saving
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    
+    const newParent = new ParentModel({
+      parName,
+      childName: student.fullName, // Auto-fill from Student
+      admno,
+      childDep: student.department, // Auto-fill from Student
+      addressp,
+      parRole,
+      email,
+      phone,
+      password: hashedPassword
+    });
+
+    await newParent.save();
+    res.status(201).json({ message: "✅ Parent registered successfully!"});
+  } catch (error) {
+    console.log(req.body);
+    res.status(500).json({ error: "❌ Error registering parent", details: error.message });
+  }
+});     */
 
 // 🔹 Register Warden
 app.post("/register-warden", async (req, res) => {
@@ -166,6 +245,53 @@ app.post("/login", async (req, res) => {
 
 // Start server
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
+
+
+const GatepassreqSchema = new mongoose.Schema({
+  requestDate: { type: Date, required: true, default: Date.now }, // Defaults to current date
+  requestTime: { type: String, required: true }, // Time as a string (e.g., "14:30")
+  reason: { type: String, required: true, trim: true },
+  place: { type: String, required: true, trim: true },
+  goingDate: { type: Date, required: true }, 
+  goingTime: { type: String, required: true }, // Keeping time as string
+  returnDate: { type: Date, required: true }, // Removed unique constraint
+  status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" }, // Status tracking
+}, { timestamps: true }); // Automatically adds createdAt and updatedAt timestamps
+
+const GatepassRequest = mongoose.model("GatepassRequest", GatepassreqSchema);
+
+module.exports = GatepassRequest;
+
+// API Routes
+
+// gatepass
+app.post("/reqgatepass", async (req, res) => {
+  try {
+    const { requestDate, requestTime, reason, place, goingDate, goingTime, returnDate } = req.body;
+    
+
+    const newgatepass = new GatepassRequest({ requestDate, requestTime, reason, place, goingDate, goingTime, returnDate });
+    await newgatepass.save();
+    
+    res.status(201).json({ message: "✅gate pass req sent!", gatepassRequest: newgatepass });
+  } catch (error) {
+    res.status(500).json({ error: "❌ Error ", details: error.message });
+  }
+});
+
+// Get all reqs
+app.get("/reqgatepass", async (req, res) => {
+  try {
+    const newgatepass = await GatepassRequest.find();
+    res.json(newgatepass)
+  } catch (error) {
+    res.status(500).json({ error: "❌ Error fetching reqs", details: error.message });
+  }
+});
+
+
+
 
 
 /*
