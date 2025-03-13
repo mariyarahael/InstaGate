@@ -9,13 +9,15 @@
 </head>
 <body class="flex items-center justify-center min-h-screen bg-gray-900 text-white">
     <div class="bg-gray-800 p-6 rounded-lg shadow-lg w-96">
-        <h2 class="text-2xl font-bold text-yellow-400 mb-4">Gate Pass</h2>
-        <p><strong>Name:</strong> <span id="studentName"></span></p>
-        <p><strong>ID:</strong> <span id="studentID"></span></p>
-        <p><strong>Destination:</strong> <span id="destination"></span></p>
-        <p><strong>Date:</strong> <span id="date"></span></p>
-        <p><strong>Time:</strong> <span id="time"></span></p>
+        <h2 class="text-2xl font-bold text-yellow-400 mb-4 text-center">Gate Pass</h2>
+        <p><strong>Name:</strong> <span id="studentName">John Doe</span></p>
+        <p><strong>ID:</strong> <span id="studentID">STU12345</span></p>
+        <p><strong>Destination:</strong> <span id="destination">New York</span></p>
+        <p><strong>Date:</strong> <span id="date">2025-03-15</span></p>
+        <p><strong>Time:</strong> <span id="time">10:00 AM</span></p>
+        <p><strong>Status:</strong> <span id="status">Approved</span></p>
         <button onclick="downloadPDF()" class="mt-4 w-full py-2 bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-semibold rounded-lg">Download PDF</button>
+        <a href="studentportal.html" class="mt-4 block text-center py-2 bg-gray-600 hover:bg-gray-500 text-white font-semibold rounded-lg">Back to Dashboard</a>
     </div>
 
     <script>
@@ -23,15 +25,16 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
-            doc.setFontSize(16);
-            doc.text("Gate Pass", 20, 20);
+            doc.setFontSize(18);
+            doc.text("Gate Pass", 80, 20);
             doc.setFontSize(12);
-            doc.text("Name: " + (document.getElementById("studentName").innerText || "Not Available"), 20, 40);
-            doc.text("ID: " + (document.getElementById("studentID").innerText || "Not Available"), 20, 50);
-            doc.text("Destination: " + (document.getElementById("destination").innerText || "Not Available"), 20, 60);
-            doc.text("Date: " + (document.getElementById("date").innerText || "Not Available"), 20, 70);
-            doc.text("Time: " + (document.getElementById("time").innerText || "Not Available"), 20, 80);
-            doc.text("Status: " + (document.getElementById("status").innerText || "Not Available"), 20, 90);
+            doc.text("------------------------------", 20, 30);
+            doc.text("Name: " + document.getElementById("studentName").innerText, 20, 40);
+            doc.text("ID: " + document.getElementById("studentID").innerText, 20, 50);
+            doc.text("Destination: " + document.getElementById("destination").innerText, 20, 60);
+            doc.text("Date: " + document.getElementById("date").innerText, 20, 70);
+            doc.text("Time: " + document.getElementById("time").innerText, 20, 80);
+            doc.text("------------------------------", 20, 100);
             
             doc.save("Gate_Pass.pdf");
         }
