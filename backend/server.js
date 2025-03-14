@@ -251,6 +251,7 @@ app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 const GatepassreqSchema = new mongoose.Schema({
   requestDate: { type: Date, required: true, default: Date.now }, // Defaults to current date
   requestTime: { type: String, required: true }, // Time as a string (e.g., "14:30")
+  passType: { type: String, required: true },
   reason: { type: String, required: true, trim: true },
   place: { type: String, required: true, trim: true },
   goingDate: { type: Date, required: true }, 
@@ -268,10 +269,10 @@ module.exports = GatepassRequest;
 // gatepass
 app.post("/reqgatepass", async (req, res) => {
   try {
-    const { requestDate, requestTime, reason, place, goingDate, goingTime, returnDate } = req.body;
+    const { requestDate, requestTime, passType, reason, place, goingDate, goingTime, returnDate } = req.body;
     
 
-    const newgatepass = new GatepassRequest({ requestDate, requestTime, reason, place, goingDate, goingTime, returnDate });
+    const newgatepass = new GatepassRequest({ requestDate, requestTime, passType, reason, place, goingDate, goingTime, returnDate });
     await newgatepass.save();
     
     res.status(201).json({ message: "✅gate pass req sent!", gatepassRequest: newgatepass });

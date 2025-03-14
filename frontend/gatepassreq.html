@@ -24,6 +24,14 @@
                 <input type="text" id="requestTime" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600" readonly>
             </div>
 
+            <div>
+                <label class="block text-sm font-medium">Type of pass</label>
+              <select id="passType" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <option value="homegoing">Homegoing</option>
+                <option value="movement">Movement</option>
+              </select>
+            </div>
+
             <!-- Reason (Max 200 characters) -->
             <div>
                 <label class="block text-sm font-medium">Reason (Max 200 chars)</label>
@@ -107,6 +115,7 @@
     // Get values
     const requestDate = document.getElementById("requestDate").value;
     const requestTime = document.getElementById("requestTime").value;
+    const passType = document.getElementById("passType").value;
     const reason = document.getElementById("reason").value;
     const place = document.getElementById("place").value;
     const goingDate = document.getElementById("goingDate").value;
@@ -133,7 +142,7 @@
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ requestDate, requestTime, reason, place, goingDate, goingTime, returnDate })
+            body: JSON.stringify({ requestDate, requestTime, passType, reason, place, goingDate, goingTime, returnDate })
         });
 
         const result = await response.json();
