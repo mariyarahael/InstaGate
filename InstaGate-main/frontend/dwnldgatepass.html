@@ -7,19 +7,35 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
-<body class="flex items-center justify-center min-h-screen bg-gray-900 text-white">
-    <div class="bg-gray-800 p-6 rounded-lg shadow-lg w-96">
-        <h2 class="text-2xl font-bold text-yellow-400 mb-4 text-center">Gate Pass</h2>
-        <p><strong>Name:</strong> <span id="studentName">John Doe</span></p>
-        <p><strong>ID:</strong> <span id="studentID">STU12345</span></p>
-        <p><strong>Destination:</strong> <span id="destination">New York</span></p>
-        <p><strong>Date:</strong> <span id="date">2025-03-15</span></p>
-        <p><strong>Time:</strong> <span id="time">10:00 AM</span></p>
-        <p><strong>Status:</strong> <span id="status">Approved</span></p>
-        <button onclick="downloadPDF()" class="mt-4 w-full py-2 bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-semibold rounded-lg">Download PDF</button>
-        <a href="studentportal.html" class="mt-4 block text-center py-2 bg-gray-600 hover:bg-gray-500 text-white font-semibold rounded-lg">Back to Dashboard</a>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col">
+    
+    <!-- Header -->
+    <header class="w-full bg-gray-800 py-4 text-center text-yellow-400 text-2xl font-bold shadow-md">
+        InstaGate - Gate Pass System
+    </header>
+    
+    <!-- Main Content -->
+    <div class="flex flex-1 items-center justify-center">
+        <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-lg">
+            <h2 class="text-3xl font-bold text-yellow-400 mb-6 text-center">Gate Pass</h2>
+            <div class="w-full space-y-4 text-lg">
+                <p><strong>Name:</strong> <span id="studentName"></span></p>
+                <p><strong>ID:</strong> <span id="studentID"></span></p>
+                <p><strong>Destination:</strong> <span id="destination"></span></p>
+                <p><strong>Date:</strong> <span id="date"></span></p>
+                <p><strong>Time:</strong> <span id="time"></span></p>
+                <p><strong>Status:</strong> <span id="status"></span></p>
+            </div>
+            
+            <button onclick="downloadPDF()" class="mt-6 w-full py-3 bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-semibold rounded-lg">
+                Download PDF
+            </button>
+            <a href="studentportal.html" class="mt-4 w-full py-3 bg-gray-600 hover:bg-gray-500 text-white text-center font-semibold rounded-lg block">
+                Back to Dashboard
+            </a>
+        </div>
     </div>
-
+    
     <script>
         function downloadPDF() {
             const { jsPDF } = window.jspdf;
@@ -34,6 +50,7 @@
             doc.text("Destination: " + document.getElementById("destination").innerText, 20, 60);
             doc.text("Date: " + document.getElementById("date").innerText, 20, 70);
             doc.text("Time: " + document.getElementById("time").innerText, 20, 80);
+            doc.text("Status: " + document.getElementById("status").innerText, 20, 90);
             doc.text("------------------------------", 20, 100);
             
             doc.save("Gate_Pass.pdf");

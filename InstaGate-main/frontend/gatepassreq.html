@@ -3,41 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Download Gate Pass</title>
+    <title>Gate Pass Request</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
-<body class="flex items-center justify-center min-h-screen bg-gray-900 text-white">
-    <div class="bg-gray-800 p-6 rounded-lg shadow-lg w-96">
-        <h2 class="text-2xl font-bold text-yellow-400 mb-4 text-center">Gate Pass</h2>
-        <p><strong>Name:</strong> <span id="studentName">John Doe</span></p>
-        <p><strong>ID:</strong> <span id="studentID">STU12345</span></p>
-        <p><strong>Destination:</strong> <span id="destination">New York</span></p>
-        <p><strong>Date:</strong> <span id="date">2025-03-15</span></p>
-        <p><strong>Time:</strong> <span id="time">10:00 AM</span></p>
-        <p><strong>Status:</strong> <span id="status">Approved</span></p>
-        <button onclick="downloadPDF()" class="mt-4 w-full py-2 bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-semibold rounded-lg">Download PDF</button>
-        <a href="studentportal.html" class="mt-4 block text-center py-2 bg-gray-600 hover:bg-gray-500 text-white font-semibold rounded-lg">Back to Dashboard</a>
+<body class="bg-gray-900 text-white min-h-screen flex">
+    <!-- Sidebar -->
+    <div class="w-1/4 bg-gray-800 p-6 min-h-screen">
+        <h2 class="text-3xl font-bold text-yellow-400">Student Portal</h2>
+        <nav class="mt-6 space-y-4">
+            <a href="studentportal.html" class="block p-3 bg-gray-700 rounded-lg hover:bg-yellow-400 hover:text-gray-900">🏠 Dashboard</a>
+            <a href="gatepassreq.html" class="block p-3 bg-yellow-500 text-gray-900 rounded-lg">📜 Request Gate Pass</a>
+            <a href="downloadgatepass.html" class="block p-3 bg-gray-700 rounded-lg hover:bg-yellow-400 hover:text-gray-900">📥 Download Gate Pass</a>
+            <a href="cabbooking.html" class="block p-3 bg-gray-700 rounded-lg hover:bg-yellow-400 hover:text-gray-900">🚖 Cab Booking</a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex items-center justify-center">
+        <div class="bg-gray-800 text-white p-8 rounded-xl shadow-lg w-full max-w-lg">
+            <h2 class="text-2xl font-bold text-center text-yellow-400">Gate Pass Request</h2>
+
+            <form id="gatePassForm" class="mt-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium">Request Date</label>
+                    <input type="date" id="requestDate" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600" readonly>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Reason</label>
+                    <textarea id="reason" maxlength="200" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Going Date</label>
+                    <input type="date" id="goingDate" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Return Date</label>
+                    <input type="date" id="returnDate" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Place</label>
+                    <input type="text" id="place" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600">
+                </div>
+                <button type="submit" class="w-full py-3 bg-yellow-600 hover:bg-yellow-500 rounded-md font-semibold">Submit Request</button>
+            </form>
+            <a href="studentportal.html" class="mt-4 block text-center py-2 bg-gray-600 hover:bg-gray-500 text-white font-semibold rounded-lg">Back to Dashboard</a>
+        </div>
     </div>
 
     <script>
-        function downloadPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            doc.setFontSize(18);
-            doc.text("Gate Pass", 80, 20);
-            doc.setFontSize(12);
-            doc.text("------------------------------", 20, 30);
-            doc.text("Name: " + document.getElementById("studentName").innerText, 20, 40);
-            doc.text("ID: " + document.getElementById("studentID").innerText, 20, 50);
-            doc.text("Destination: " + document.getElementById("destination").innerText, 20, 60);
-            doc.text("Date: " + document.getElementById("date").innerText, 20, 70);
-            doc.text("Time: " + document.getElementById("time").innerText, 20, 80);
-            doc.text("------------------------------", 20, 100);
-            
-            doc.save("Gate_Pass.pdf");
-        }
+        document.getElementById("requestDate").value = new Date().toISOString().split("T")[0];
+
+        document.getElementById("gatePassForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            alert("Gate Pass Request Submitted Successfully!");
+            document.getElementById("gatePassForm").reset();
+        });
     </script>
 </body>
 </html>
