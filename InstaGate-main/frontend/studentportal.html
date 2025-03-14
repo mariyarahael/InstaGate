@@ -37,15 +37,10 @@
                 </div>
             </div>
 
-            <!-- Gate Pass List -->
+            <!-- All Gate Pass Requests -->
             <div class="bg-gray-800 p-6 rounded-lg mt-6">
-                <h2 class="text-xl font-semibold mb-4">All Gate Pass Requests</h2>
+                <h2 class="text-xl font-semibold mb-4">All Approved Gate Pass Requests</h2>
                 <ul id="gatePassList" class="space-y-3"></ul>
-            </div>
-
-            <!-- Pending Gate Pass Requests -->
-            <div class="bg-gray-800 p-6 rounded-lg mt-6">
-                <h2 class="text-xl font-semibold">Pending Gate Pass Requests: <span id="pendingCount" class="text-yellow-400">Loading...</span></h2>
             </div>
         </div>
     </div>
@@ -58,8 +53,7 @@
         };
 
         let statusData = {
-            requested: 0, // Will be updated later
-            accepted: 0
+            approved: 0 // Will be updated later
         };
 
         let gatePassList = []; // Will be updated later
@@ -84,10 +78,10 @@
         new Chart(document.getElementById('doughnutChart'), {
             type: 'doughnut',
             data: {
-                labels: ['Requested', 'Accepted'],
+                labels: ['Approved'],
                 datasets: [{
-                    data: [statusData.requested, statusData.accepted],
-                    backgroundColor: ['rgba(255, 206, 86, 0.7)', 'rgba(54, 162, 235, 0.7)']
+                    data: [statusData.approved],
+                    backgroundColor: ['rgba(54, 162, 235, 0.7)']
                 }]
             },
             options: { responsive: true }
@@ -96,10 +90,8 @@
         // Populate Gate Pass List
         function renderGatePassList() {
             document.getElementById('gatePassList').innerHTML = gatePassList.length > 0 
-                ? gatePassList.map(pass => `<li class="p-3 bg-gray-700 rounded-lg">📅 ${pass.date} - ⏰ ${pass.time} - ${pass.status}</li>`).join('')
-                : '<p>No requests yet.</p>';
-            
-            document.getElementById('pendingCount').textContent = gatePassList.filter(p => p.status === 'Pending').length;
+                ? gatePassList.map(pass => `<li class="p-3 bg-gray-700 rounded-lg">📅 ${pass.date} - ⏰ ${pass.time} - Approved</li>`).join('')
+                : '<p>No approved requests yet.</p>';
         }
 
         renderGatePassList(); // Call initially with placeholder values
