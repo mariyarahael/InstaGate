@@ -8,9 +8,9 @@
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex">
     <!-- Sidebar -->
-    <div class="w-1/4 bg-gray-800 p-6 min-h-screen">
-        <h2 class="text-3xl font-bold text-yellow-400">Student Portal</h2>
-        <nav class="mt-6 space-y-4">
+    <div class="w-1/5 bg-gray-800 p-6 min-h-screen flex flex-col space-y-6">
+        <h2 class="text-2xl font-bold text-yellow-400">Student Portal</h2>
+        <nav class="space-y-4">
             <a href="studentportal.html" class="block p-3 bg-gray-700 rounded-lg hover:bg-yellow-400 hover:text-gray-900">🏠 Dashboard</a>
             <a href="gatepassreq.html" class="block p-3 bg-yellow-500 text-gray-900 rounded-lg">📜 Request Gate Pass</a>
             <a href="downloadgatepass.html" class="block p-3 bg-gray-700 rounded-lg hover:bg-yellow-400 hover:text-gray-900">📥 Download Gate Pass</a>
@@ -19,9 +19,9 @@
     </div>
 
     <!-- Main Content -->
-    <div class="flex-1 flex items-center justify-center">
+    <div class="flex-1 p-6 flex items-center justify-center">
         <div class="bg-gray-800 text-white p-8 rounded-xl shadow-lg w-full max-w-lg">
-            <h2 class="text-2xl font-bold text-center text-yellow-400">Gate Pass Request</h2>
+            <h2 class="text-3xl font-bold text-center text-yellow-400 mb-6">Gate Pass Request</h2>
 
             <form id="gatePassForm" class="mt-6 space-y-4">
                 <div>
@@ -29,7 +29,14 @@
                     <input type="date" id="requestDate" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600" readonly>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium">Reason</label>
+                    <label class="block text-sm font-medium">Type of Pass</label>
+                    <select id="passType" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-yellow-400" required>
+                        <option value="homegoing">Homegoing</option>
+                        <option value="movement">Movement</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Reason (Max 200 chars)</label>
                     <textarea id="reason" maxlength="200" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600"></textarea>
                 </div>
                 <div>
@@ -53,11 +60,53 @@
     <script>
         document.getElementById("requestDate").value = new Date().toISOString().split("T")[0];
 
-        document.getElementById("gatePassForm").addEventListener("submit", function(event) {
+        document.getElementById("gatePassForm").addEventListener("submit", async function(event) {
             event.preventDefault();
-            alert("Gate Pass Request Submitted Successfully!");
-            document.getElementById("gatePassForm").reset();
+            const requestDate = document.getElementById("requestDate").value;
+            const passType = document.getElementById("passType").value;
+            const reason = document.getElementById("reason").value;
+            const goingDate = document.getElementById("goingDate").value;
+            const returnDate = document.getElementById("returnDate").value;
+            const place = document.getElementById("place").value;
+            
+            if (!passType || !reason || !goingDate || !returnDate || !place) {
+                alert("All fields are required!");
+                return;
+            }
+
+            try {
+                const response = await fetch("http://localhost:5000/reqgatepass", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ requestDate, passType, reason, goingDate, returnDate, place })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(result.message);
+                    window.location.href = "studentportal.html";
+                } else {
+                    alert(result.error);
+                }
+            } catch (error) {
+                alert("An error occurred while submitting the request. Please try again.");
+            }
         });
+
+        // Function to fetch and update gate pass requests on the dashboard
+        async function updateDashboard() {
+            try {
+                const response = await fetch("http://localhost:5000/getgatepasses");
+                const data = await response.json();
+                localStorage.setItem("gatePassData", JSON.stringify(data));
+            } catch (error) {
+                console.error("Error fetching updated data:", error);
+            }
+        }
+
+        // Call updateDashboard when a request is submitted
+        document.getElementById("gatePassForm").addEventListener("submit", updateDashboard);
     </script>
 </body>
 </html>
