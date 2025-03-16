@@ -15,7 +15,7 @@ app.use(cors());
 // Get MongoDB URI and JWT Secret Key from .env file
 const MONGO_URI = process.env.MONGO_URI;
 const PORT = process.env.PORT || 5000;
-const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key"; // Change this in production!
+const SECRET_KEY = process.env.JWT_SECRET_MINE ; // Change this in production!
 
 // Check if MongoDB URI is available
 if (!MONGO_URI) {
@@ -31,6 +31,10 @@ mongoose
     console.error("❌ MongoDB connection error:", err);
     process.exit(1);
   });
+
+
+
+
 
 /* ======================== Define User Schemas ======================== */
 
@@ -126,6 +130,7 @@ const registerParent = async (req, res) => {
       return res.status(400).json({ error: "Child department does not match our records." });
     }
   */
+ 
     // 3️⃣ Use the Student's `_id` instead of `admno`
     const parent = new ParentModel({
       parName,
@@ -147,13 +152,11 @@ const registerParent = async (req, res) => {
   }
 };
 
-
 // ✅ ADD THIS ROUTE
 app.post("/register-parent", registerParent);
 
 //const parent = await ParentModel.findOne({ email: "parent@example.com" }).populate("admno");
 //console.log(parent);
-
 
 /*
 app.post("/register-parent", async (req, res) => {
@@ -195,6 +198,7 @@ app.post("/register-parent", async (req, res) => {
   }
 });     */
 
+
 // 🔹 Register Warden
 app.post("/register-warden", async (req, res) => {
   try {
@@ -229,13 +233,14 @@ app.post("/login", async (req, res) => {
     }
 
     // Compare password
+    console.log("admno===="+user.admno);
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
     // Generate JWT token with role
-    const token = jwt.sign({ userId: user._id, role: user.role }, SECRET_KEY, { expiresIn: "1h" });
+    const token = jwt.sign({ userId: user._id, role: user.role , admno:user.admno}, SECRET_KEY, { expiresIn: "24h" });
 
     res.json({ message: "✅ Login successful!", token, role: user.role });
   } catch (error) {
@@ -247,7 +252,6 @@ app.post("/login", async (req, res) => {
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 
 
-
 const GatepassreqSchema = new mongoose.Schema({
   requestDate: { type: Date, required: true, default: Date.now }, // Defaults to current date
   requestTime: { type: String, required: true }, // Time as a string (e.g., "14:30")
@@ -257,7 +261,7 @@ const GatepassreqSchema = new mongoose.Schema({
   goingDate: { type: Date, required: true }, 
   goingTime: { type: String, required: true }, // Keeping time as string
   returnDate: { type: Date, required: true }, // Removed unique constraint
-  status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" }, // Status tracking
+  status: { type: String, enum: ["pending", "approved", "rejected","Pending Parent Approval"], default: "pending" }, // Status tracking
 }, { timestamps: true }); // Automatically adds createdAt and updatedAt timestamps
 
 const GatepassRequest = mongoose.model("GatepassRequest", GatepassreqSchema);
@@ -266,20 +270,65 @@ module.exports = GatepassRequest;
 
 // API Routes
 
+
+
+
+//authenticate route
+
+const authenticateUser = require("./middleware/authMiddleware");
+
 // gatepass
-app.post("/reqgatepass", async (req, res) => {
+
+app.post("/reqgatepass", authenticateUser, async (req, res) => {
   try {
     const { requestDate, requestTime, passType, reason, place, goingDate, goingTime, returnDate } = req.body;
+    const admno=req.user.admno;
     
+    console.log("Received admno:", admno); // ✅ Log admno
 
-    const newgatepass = new GatepassRequest({ requestDate, requestTime, passType, reason, place, goingDate, goingTime, returnDate });
-    await newgatepass.save();
+    // ✅ Check if admno exists
+    if (!admno) {
+      return res.status(400).json({ error: "Admission number is required" });
+    }
+
+    // ✅ Find student using provided admno
+    const student = await StudentModel.findOne({ admno });
+    if (!student) {
+      return res.status(404).json({ error: `Student with admno ${admno} not found` });
+    }
+
+    console.log("Student found:", student); // ✅ Log student info
+
+    // ✅ Find the corresponding parent
+    const parent = await ParentModel.findOne({ admno: student._id });
+    if (!parent) {
+      return res.status(404).json({ error: "Parent not found" });
+    }
+
+    console.log("Parent found:", parent); // ✅ Log parent info
+
+    // ✅ Create new gate pass request with parent reference
+    const newGatepass = new GatepassRequest({
+      studentId: student.admno,
+      parentId: parent._id,
+      requestDate,
+      requestTime,
+      passType,
+      reason,
+      place,
+      goingDate,
+      goingTime,
+      returnDate,
+      status: "Pending Parent Approval"
+    });
     
-    res.status(201).json({ message: "✅gate pass req sent!", gatepassRequest: newgatepass });
+    await newGatepass.save();
+    res.status(201).json({ message: "✅ Gate pass request sent to parent!", gatepassRequest: newGatepass });
   } catch (error) {
-    res.status(500).json({ error: "❌ Error ", details: error.message });
+    res.status(500).json({ error: "❌ Error", details: error.message });
   }
 });
+
 
 // Get all reqs
 app.get("/reqgatepass", async (req, res) => {
@@ -290,8 +339,6 @@ app.get("/reqgatepass", async (req, res) => {
     res.status(500).json({ error: "❌ Error fetching reqs", details: error.message });
   }
 });
-
-
 
 
 

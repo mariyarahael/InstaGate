@@ -63,7 +63,6 @@
                 <input type="date" id="returnDate" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600">
             </div>
 
-
             <!-- Submit Button -->
             <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-md font-semibold">
                 Submit Request
@@ -74,28 +73,20 @@
     </div>
 
     <script>
-
-        // Function to format time in 12-hour format with AM/PM
         function formatTimeTo12Hour(hours, minutes) {
             let ampm = hours >= 12 ? "PM" : "AM";
-            hours = hours % 12 || 12; // Convert 0 to 12 for AM/PM format
+            hours = hours % 12 || 12;
             return `${hours}:${minutes.toString().padStart(2, "0")} ${ampm}`;
         }
 
-        // Function to set the current date and time in 12-hour format
         function setCurrentDateTime() {
             const now = new Date();
-
-            // Format date as YYYY-MM-DD
             document.getElementById("requestDate").value = now.toISOString().split("T")[0];
-
-            // Format time as HH:MM AM/PM
             const hours = now.getHours();
             const minutes = now.getMinutes();
             document.getElementById("requestTime").value = formatTimeTo12Hour(hours, minutes);
         }
 
-        // Auto-format going time when selected
         document.getElementById("goingTime").addEventListener("input", function() {
             let timeValue = this.value;
             if (timeValue) {
@@ -106,80 +97,65 @@
             }
         });
 
-        // Set Request Date and Request Time on page load
         document.addEventListener("DOMContentLoaded", setCurrentDateTime);
 
         document.getElementById("gatePassForm").addEventListener("submit", async function(event) {
-    event.preventDefault(); // Prevent default form submission
-    
-    // Get values
-    const requestDate = document.getElementById("requestDate").value;
-    const requestTime = document.getElementById("requestTime").value;
-    const passType = document.getElementById("passType").value;
-    const reason = document.getElementById("reason").value;
-    const place = document.getElementById("place").value;
-    const goingDate = document.getElementById("goingDate").value;
-    const goingTime = document.getElementById("goingTime").value;
-    const returnDate = document.getElementById("returnDate").value;
-    const errorMessage = document.getElementById("errorMessage");
+            event.preventDefault();
+            
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("You are not logged in! Please log in first.");
+                return;
+            }
+            
+            const requestDate = document.getElementById("requestDate").value;
+            const requestTime = document.getElementById("requestTime").value;
+            const passType = document.getElementById("passType").value;
+            const reason = document.getElementById("reason").value;
+            const place = document.getElementById("place").value;
+            const goingDate = document.getElementById("goingDate").value;
+            const goingTime = document.getElementById("goingTime").value;
+            const returnDate = document.getElementById("returnDate").value;
+            const errorMessage = document.getElementById("errorMessage");
 
-    // Validation
-    if (!reason || !goingDate || !goingTime || !returnDate || !place) {
-        errorMessage.textContent = "All fields are required!";
-        errorMessage.classList.remove("hidden");
-        return;
-    }
+            if (!reason || !goingDate || !goingTime || !returnDate || !place) {
+                errorMessage.textContent = "All fields are required!";
+                errorMessage.classList.remove("hidden");
+                return;
+            }
 
-    if (new Date(returnDate) < new Date(goingDate)) {
-        errorMessage.textContent = "Return date must be after the going date!";
-        errorMessage.classList.remove("hidden");
-        return;
-    }
+            if (new Date(returnDate) < new Date(goingDate)) {
+                errorMessage.textContent = "Return date must be after the going date!";
+                errorMessage.classList.remove("hidden");
+                return;
+            }
 
-    try {
-        const response = await fetch("http://localhost:5000/reqgatepass", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ requestDate, requestTime, passType, reason, place, goingDate, goingTime, returnDate })
+            try {
+                console.log("🔍 Sending Token:", token);
+                const response = await fetch("http://localhost:5000/reqgatepass", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ requestDate, requestTime, passType, reason, place, goingDate, goingTime, returnDate })
+                });
+
+                const result = await response.json();
+                console.log("🔍 Server Response:", result);
+
+                if (!response.ok) {
+                    throw new Error(result.error || "Failed to submit request");
+                }
+
+                alert(result.message);
+                window.location.href = "studentportal.html";
+            } catch (error) {
+                console.error("❌ Error submitting request:", error);
+                alert(`An error occurred: ${error.message}`);
+            }
         });
-
-        const result = await response.json();
-
-        if (response.ok) {
-            alert(result.message);
-            window.location.href = "studentportal.html";
-        } else {
-            alert(result.error);
-            return;  // Stop execution if there's an error
-        }
-    } catch (error) {
-        console.error("Error:", error);
-        alert("An error occurred while submitting the request. Please try again.");
-        return;
-    }
-
-    // Hide error message and reset form
-    errorMessage.classList.add("hidden");
-    document.getElementById("gatePassForm").reset();
-
-    // Refill request date & request time after reset
-    if (typeof setCurrentDateTime === "function") {
-        setCurrentDateTime();
-    }
-
-    // Ensure this element exists before modifying it
-    const goingTimeFormatted = document.getElementById("goingTimeFormatted");
-    if (goingTimeFormatted) {
-        goingTimeFormatted.textContent = "";
-    }
-});
-
     </script>
-
 </body>
 </html>
-
-
 

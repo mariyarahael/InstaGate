@@ -39,10 +39,54 @@
     </div>
 
     <script>
-        // Placeholder Data (To be retrieved from DB later)
-        let gatePassData = { labels: [], data: [] };
+        async function fetchParentRequests() {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("You are not logged in! Please log in first.");
+                return;
+            }
 
-        // Render Bar Chart
+            try {
+                const response = await fetch("http://localhost:5000/parent/requests", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                  
+                const text = await response.text();
+                console.log("🔍 Raw Response:", text);
+
+                const requests = JSON.parse(text); // ✅ Parse JSON only if valid
+                console.log("✅ Parsed JSON:", requests);
+                //const requests = await response.json();
+               // console.log("Parent Requests:", requests);
+
+                const requestList = document.getElementById("gatePassList");
+                requestList.innerHTML = "";
+
+                requests.forEach((req) => {
+                    const listItem = document.createElement("li");
+                    listItem.classList.add("p-3", "bg-gray-700", "rounded-lg");
+                    listItem.innerHTML = `
+                        <strong>Student:</strong> ${req.studentId.fullName} <br>
+                        <strong>Reason:</strong> ${req.reason} <br>
+                        <strong>Going Date:</strong> ${new Date(req.goingDate).toLocaleDateString()} <br>
+                        <button class="bg-green-500 p-2 rounded mt-2" onclick="approveRequest('${req._id}')">Approve</button>
+                        <button class="bg-red-500 p-2 rounded mt-2 ml-2" onclick="rejectRequest('${req._id}')">Reject</button>
+                    `;
+                    requestList.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error("Error fetching parent requests:", error);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", fetchParentRequests);
+
+        let gatePassData = { labels: [], data: [] };
         new Chart(document.getElementById('barChart'), {
             type: 'bar',
             data: {

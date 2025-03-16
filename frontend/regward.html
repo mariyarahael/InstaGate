@@ -12,20 +12,28 @@
         <div class="hidden md:flex flex-col justify-between p-8 bg-gray-700 rounded-l-xl w-1/2">
             <h1 class="text-2xl font-bold">InstaGate</h1>
             <div class="flex-grow flex flex-col justify-center">
-                <img src="image5.jpg" class="rounded-lg" alt="fithos">
+                <img src="assets/image5.jpg" class="rounded-lg" alt="Warden Portal">
                 <p class="mt-4 text-lg">Streamlining Hostel Pass Processing</p>
             </div>
-            <button class="mt-4 py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg text-sm">Back to website →</button>
+            <button onclick="window.location.href='index.html'" class="mt-4 py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg text-sm">Back to website →</button>
         </div>
         
         <!-- Right Side (Form) -->
         <div class="w-full md:w-1/2 p-8">
             <h2 class="text-3xl font-bold">Warden Registration</h2>
             <p class="text-gray-400 mt-2">Already have an account? <a href="login.html" class="text-blue-400">Log in</a></p>
-            <form class="mt-4 space-y-4">
+            
+            <form id="wardenRegisterForm" class="mt-4 space-y-4">
                 <input type="text" id="warName" placeholder="Full Name" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
                 <textarea id="warAddress" placeholder="Address" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" rows="3" required></textarea>
-                <input type="text" id="hosNameWar" placeholder="Hostel Name" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                <select id="hosNameWar" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+                    <option value="" disabled selected>Select Hostel</option>
+                    <option value="UG girls">UG girls</option>
+                    <option value="PG girls">PG girls</option>
+                    <option value="MH boys">MH boys</option>
+                    <option value="PG boys">PG boys</option>
+                </select>
+                
                 <input type="email" id="email" placeholder="Email" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
                 <input type="tel" id="phone" placeholder="Phone Number" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
                 <input type="password" id="password" placeholder="Enter your password" class="w-full p-3 rounded-md bg-gray-700 border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
@@ -39,38 +47,40 @@
         document.getElementById("wardenRegisterForm").addEventListener("submit", async function(event) {
             event.preventDefault();
 
-            const warName = document.getElementById("warName").value;
-            const warAddress = document.getElementById("warAddress").value;
-            const hosNameWar = document.getElementById("hosNameWar").value;
-            const email = document.getElementById("email").value;
-            const phone = document.getElementById("phone").value;
+            const warName = document.getElementById("warName").value.trim();
+            const warAddress = document.getElementById("warAddress").value.trim();
+            const hosNameWar = document.getElementById("hosNameWar").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const phone = document.getElementById("phone").value.trim();
             const password = document.getElementById("password").value;
             const conPasswordw = document.getElementById("conPasswordw").value;
 
             if (password !== conPasswordw) {
-                alert("Passwords do not match!");
+                alert("❌ Passwords do not match!");
                 return;
             }
 
-            const response = await fetch("http://localhost:5000/register-warden", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ warName, warAddress, hosNameWar, email, phone, password })
-            });
+            try {
+                const response = await fetch("http://localhost:5000/register-warden", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ warName, warAddress, hosNameWar, email, phone, password, role: "warden" })
+                });
 
-            const result = await response.json();
-            if (response.ok) {
-                alert(result.message);
-                window.location.href = "login.html";
-            } else {
-                alert(result.error);
+                const result = await response.json();
+                if (response.ok) {
+                    alert("✅ " + result.message);
+                    window.location.href = "login.html";
+                } else {
+                    alert("❌ " + result.error);
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("⚠️ Server is down. Try again later.");
             }
         });
     </script>
-
-
-
 </body>
 </html>
