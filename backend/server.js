@@ -341,6 +341,90 @@ app.get("/reqgatepass", async (req, res) => {
 });
 
 
+app.get("/parent/requests", authenticateUser, async (req, res) => {
+  try {
+    if (!req.user || req.user.role !== "parent") {
+      return res.status(401).json({ error: "Unauthorized: Only parents can access requests" });
+    }
+
+   // ✅ Find the logged-in parent's details
+   const parent = await ParentModel.findById(req.user.userId);
+   if (!parent) {
+       return res.status(404).json({ error: "Parent not found" });
+   }
+
+   // ✅ Find only requests belonging to this parent's child
+   const requests = await GatepassRequest.find({ parentId: parent._id })
+   .populate("studentId", "fullName admno department") // Fetch student details
+   .sort({ createdAt: -1 }); // Sort by latest request
+
+if (requests.length === 0) {
+   return res.status(404).json({ error: "No pending gate pass requests found" });
+}
+
+res.json(requests);
+} catch (error) {
+console.error("❌ Error fetching requests:", error);
+res.status(500).json({ error: "Internal server error", details: error.message });
+}
+
+
+/*
+    // Fetch pending requests for the logged-in parent's child
+    const requests = await GatepassRequest.find({ 
+      parentId: req.user.userId, 
+      status: "Pending Parent Approval" 
+    }).populate("studentId");
+
+    res.json(requests);
+  } catch (error) {
+    res.status(500).json({ error: "❌ Error fetching requests", details: error.message });
+  }
+
+
+  */
+});
+
+app.patch("/parent/respond/:id", authenticateUser, async (req, res) => {
+  try {
+    if (!req.user || req.user.role !== "parent") {
+      return res.status(401).json({ error: "Unauthorized: Only parents can approve/reject requests" });
+    }
+
+    const { id } = req.params;
+    const { approvalStatus } = req.body; // Expecting "approved" or "rejected"
+
+    const gatepass = await GatepassRequest.findById(id);
+    if (!gatepass) {
+      return res.status(404).json({ error: "Gate pass request not found" });
+    }
+
+    if (gatepass.parentId.toString() !== req.user.userId) {
+      return res.status(403).json({ error: "Unauthorized: You cannot approve/reject this request" });
+    }
+
+    // Update the request status based on parent's response
+    gatepass.status = approvalStatus === "approved" ? "Parent Approved" : "Rejected by Parent";
+    await gatepass.save();
+
+    // Notify the student about the decision
+    const student = await StudentModel.findById(gatepass.studentId);
+    if (student) {
+      console.log(`📢 Notification to ${student.email}: Your gate pass request was ${gatepass.status}`);
+    }
+
+    res.json({ message: `✅ Request ${gatepass.status}`, gatepass });
+  } catch (error) {
+    res.status(500).json({ error: "❌ Error updating request", details: error.message });
+  }
+});
+
+
+
+
+
+
+
 
 /*
 

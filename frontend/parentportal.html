@@ -55,14 +55,12 @@
                     }
                 });
 
-                  
-                const text = await response.text();
-                console.log("🔍 Raw Response:", text);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch requests");
+                }
 
-                const requests = JSON.parse(text); // ✅ Parse JSON only if valid
-                console.log("✅ Parsed JSON:", requests);
-                //const requests = await response.json();
-               // console.log("Parent Requests:", requests);
+                const requests = await response.json();
+                console.log("Parent Requests:", requests);
 
                 const requestList = document.getElementById("gatePassList");
                 requestList.innerHTML = "";
@@ -71,9 +69,11 @@
                     const listItem = document.createElement("li");
                     listItem.classList.add("p-3", "bg-gray-700", "rounded-lg");
                     listItem.innerHTML = `
-                        <strong>Student:</strong> ${req.studentId.fullName} <br>
+                        <strong>Student:</strong> ${req.studentId?.fullName || "Unknown"} <br>
                         <strong>Reason:</strong> ${req.reason} <br>
+                        <strong>Place:</strong> ${req.place} <br>
                         <strong>Going Date:</strong> ${new Date(req.goingDate).toLocaleDateString()} <br>
+                        <strong>Return Date:</strong> ${new Date(req.returnDate).toLocaleDateString()} <br>
                         <button class="bg-green-500 p-2 rounded mt-2" onclick="approveRequest('${req._id}')">Approve</button>
                         <button class="bg-red-500 p-2 rounded mt-2 ml-2" onclick="rejectRequest('${req._id}')">Reject</button>
                     `;
@@ -85,6 +85,43 @@
         }
 
         document.addEventListener("DOMContentLoaded", fetchParentRequests);
+
+        async function approveRequest(requestId) {
+            await respondToRequest(requestId, "approved");
+        }
+
+        async function rejectRequest(requestId) {
+            await respondToRequest(requestId, "rejected");
+        }
+
+        async function respondToRequest(requestId, status) {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("Unauthorized: No token found. Please log in again.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:5000/parent/respond/${requestId}`, {
+                    method: "PATCH",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ approvalStatus: status })
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to update request");
+                }
+
+                const result = await response.json();
+                alert(result.message);
+                fetchParentRequests();
+            } catch (error) {
+                console.error("Error updating request:", error);
+            }
+        }
 
         let gatePassData = { labels: [], data: [] };
         new Chart(document.getElementById('barChart'), {

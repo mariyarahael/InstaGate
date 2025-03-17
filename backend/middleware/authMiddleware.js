@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 
 const authenticateUser = (req, res, next) => {
-    const SECRET_KEY = process.env.JWT_SECRET_MINE || "4d0275f9e2b1496d78817623bb1282a79faf99f0dbceb35363861c6bb97d963e";
+    const SECRET_KEY = process.env.JWT_SECRET_MINE;
     const authHeader = req.headers.authorization;
     
     console.log("🟡 Received Authorization Header:", authHeader); // ✅ Debugging log
