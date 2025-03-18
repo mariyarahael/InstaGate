@@ -32,3 +32,29 @@ http://localhost:5000/login`,
   }
 }
 
+
+
+
+
+
+// Function to notify students when their request is approved or rejected
+async function notifyStudent(studentEmail, status) {
+  const mailOptions = {
+      from: "hostel@example.com",
+      to: studentEmail,
+      subject: `Your Gate Pass Request has been ${status}`,
+      text: `Your gate pass request has been ${status}.`,
+      html: `<p>Your gate pass request has been <strong>${status}</strong>.</p>`
+  };
+
+  try {
+      await transporter.sendMail(mailOptions);
+      console.log(`📢 Notification sent to student: ${studentEmail}`);
+  } catch (error) {
+      console.error("❌ Error sending student notification:", error);
+  }
+}
+
+//module.exports = { notifyParent, notifyStudent };
+
+

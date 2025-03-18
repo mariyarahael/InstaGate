@@ -4,6 +4,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+//const { notifyStudent } = require("./notif/notif"); // Import notifyStudent function
 
 // Load environment variables
 dotenv.config();
@@ -73,7 +74,7 @@ const ParentModel = mongoose.model("Parent", ParentSchema);
 const WardenSchema = new mongoose.Schema({
   warName: { type: String, required: true },
   warAddress: { type: String, required: true },
-  hosNameWar: { type: String, required: true },
+  hostelName: { type: String, required: true },
   email: { type: String, required: true, unique: true }, // Changed `emailw` to `email` for consistency
   phone: { type: String, required: true },
   password: { type: String, required: true }, // Hashed Password
@@ -202,14 +203,14 @@ app.post("/register-parent", async (req, res) => {
 // 🔹 Register Warden
 app.post("/register-warden", async (req, res) => {
   try {
-    const { warName, warAddress, hosNameWar, email, phone, password } = req.body;
+    const { warName, warAddress, hostelName, email, phone, password } = req.body;
 
     if (await WardenModel.findOne({ email })) {
       return res.status(400).json({ error: "Email already registered" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newWarden = new WardenModel({ warName, warAddress, hosNameWar, email, phone, password: hashedPassword });
+    const newWarden = new WardenModel({ warName, warAddress, hostelName, email, phone, password: hashedPassword });
 
     await newWarden.save();
     res.status(201).json({ message: "✅ Warden registered successfully!" });
@@ -460,6 +461,7 @@ res.status(500).json({ error: "Internal server error", details: error.message })
 });
 */
 
+// Parent approves or rejects a request
 app.patch("/parent/respond/:id", authenticateUser, async (req, res) => {
   try {
     if (!req.user || req.user.role !== "parent") {
@@ -467,32 +469,70 @@ app.patch("/parent/respond/:id", authenticateUser, async (req, res) => {
     }
 
     const { id } = req.params;
-    const { approvalStatus } = req.body; // Expecting "approved" or "rejected"
+    const { approvalStatus } = req.body;
 
-    const gatepass = await GatepassRequest.findById(id);
+    const gatepass = await GatepassRequest.findById(id).populate("studentId");
     if (!gatepass) {
       return res.status(404).json({ error: "Gate pass request not found" });
     }
 
-    if (gatepass.parentId.toString() !== req.user.userId) {
+    // Check if the logged-in parent is authorized
+    const parent = await ParentModel.findById(req.user.userId);
+    if (!parent || parent.admno.toString() !== gatepass.studentId._id.toString()) {
       return res.status(403).json({ error: "Unauthorized: You cannot approve/reject this request" });
     }
 
-    // Update the request status based on parent's response
-    gatepass.status = approvalStatus === "approved" ? "Parent Approved" : "Rejected by Parent";
-    await gatepass.save();
+    if (approvalStatus === "approved") {
+      gatepass.status = "Parent Approved";
+      
+      // ✅ Forward request to Warden
+      // Assume Warden is assigned based on student's hostel
+      const warden = await WardenModel.findOne({ hostelName: gatepass.studentId.hostelName });
+      if (!warden) {
+        return res.status(404).json({ error: "Warden not found for this hostel" });
+      }
 
-    // Notify the student about the decision
-    const student = await StudentModel.findById(gatepass.studentId);
-    if (student) {
-      console.log(`📢 Notification to ${student.email}: Your gate pass request was ${gatepass.status}`);
+      gatepass.wardenId = warden._id; // Attach Warden ID
+      gatepass.status = "Pending Warden Approval"; // Move to next step
+    } else {
+      gatepass.status = "Rejected by Parent";
     }
 
+    await gatepass.save();
+
+    // ✅ Notify Student
+    console.log(`📢 Notification: Your gate pass request has been ${gatepass.status}`);
+
     res.json({ message: `✅ Request ${gatepass.status}`, gatepass });
+
   } catch (error) {
     res.status(500).json({ error: "❌ Error updating request", details: error.message });
   }
 });
+
+
+
+
+app.get("/student/requests", authenticateUser, async (req, res) => {
+  try {
+      if (!req.user || req.user.role !== "student") {
+          return res.status(401).json({ error: "Unauthorized: Only students can view their requests" });
+      }
+
+      const requests = await GatepassRequest.find({ studentId: req.user.userId })
+          .sort({ createdAt: -1 });
+
+      if (requests.length === 0) {
+          return res.status(404).json({ error: "No gate pass requests found." });
+      }
+
+      res.json(requests);
+  } catch (error) {
+      console.error("❌ Error fetching student requests:", error);
+      res.status(500).json({ error: "Internal server error", details: error.message });
+  }
+});
+
 
 
 

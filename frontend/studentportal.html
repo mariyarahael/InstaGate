@@ -39,62 +39,119 @@
 
             <!-- All Gate Pass Requests -->
             <div class="bg-gray-800 p-6 rounded-lg mt-6">
-                <h2 class="text-xl font-semibold mb-4">All Approved Gate Pass Requests</h2>
+                <h2 class="text-xl font-semibold mb-4">Your Gate Pass Requests</h2>
                 <ul id="gatePassList" class="space-y-3"></ul>
             </div>
         </div>
     </div>
 
     <script>
-        // Placeholder for database data (to be replaced with fetched values later)
-        let gatePassData = {
-            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-            data: [0, 0, 0, 0] // Will be updated later
-        };
+        async function fetchStudentRequests() {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("Unauthorized: No token found. Please log in again.");
+                return;
+            }
 
-        let statusData = {
-            approved: 0 // Will be updated later
-        };
+            try {
+                console.log("🔍 Fetching student gate pass requests...");
+                const response = await fetch("http://localhost:5000/student/requests", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    }
+                });
 
-        let gatePassList = []; // Will be updated later
+                if (!response.ok) {
+                    throw new Error("Failed to fetch requests");
+                }
 
-        // Render Bar Chart
-        new Chart(document.getElementById('barChart'), {
-            type: 'bar',
-            data: {
-                labels: gatePassData.labels,
-                datasets: [{
-                    label: 'Gate Pass Requests',
-                    data: gatePassData.data,
-                    backgroundColor: 'rgba(255, 206, 86, 0.7)',
-                    borderColor: 'rgba(255, 206, 86, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: { responsive: true }
-        });
+                const requests = await response.json();
+                const requestList = document.getElementById("gatePassList");
+                requestList.innerHTML = "";
 
-        // Render Doughnut Chart
-        new Chart(document.getElementById('doughnutChart'), {
-            type: 'doughnut',
-            data: {
-                labels: ['Approved'],
-                datasets: [{
-                    data: [statusData.approved],
-                    backgroundColor: ['rgba(54, 162, 235, 0.7)']
-                }]
-            },
-            options: { responsive: true }
-        });
+                if (requests.length === 0) {
+                    requestList.innerHTML = `<p class="text-gray-400">No gate pass requests found.</p>`;
+                    return;
+                }
 
-        // Populate Gate Pass List
-        function renderGatePassList() {
-            document.getElementById('gatePassList').innerHTML = gatePassList.length > 0 
-                ? gatePassList.map(pass => `<li class="p-3 bg-gray-700 rounded-lg">📅 ${pass.date} - ⏰ ${pass.time} - Approved</li>`).join('')
-                : '<p>No approved requests yet.</p>';
+                // Data for charts
+                let weeklyRequests = [0, 0, 0, 0];
+                let statusCounts = { "Pending": 0, "Approved": 0, "Rejected": 0 };
+
+                requests.forEach((req) => {
+                    const listItem = document.createElement("li");
+                    listItem.classList.add("p-4", "bg-gray-700", "rounded-lg", "shadow-md");
+
+                    let statusColor = "text-yellow-400"; // Default: Pending
+                    if (req.status === "Parent Approved") {
+                        statusColor = "text-green-400";
+                        statusCounts["Approved"]++;
+                    } else if (req.status.includes("Rejected")) {
+                        statusColor = "text-red-400";
+                        statusCounts["Rejected"]++;
+                    } else {
+                        statusCounts["Pending"]++;
+                    }
+
+                    // Determine which week this request falls into
+                    const requestDate = new Date(req.goingDate);
+                    const weekOfMonth = Math.floor(requestDate.getDate() / 7);
+                    weeklyRequests[weekOfMonth]++;
+
+                    listItem.innerHTML = `
+                        <strong>Going Date:</strong> ${requestDate.toLocaleDateString()} <br>
+                        <strong>Return Date:</strong> ${new Date(req.returnDate).toLocaleDateString()} <br>
+                        <strong>Reason:</strong> ${req.reason} <br>
+                        <strong>Place:</strong> ${req.place} <br>
+                        <strong>Status:</strong> <span class="${statusColor}">${req.status}</span> <br>
+                    `;
+                    requestList.appendChild(listItem);
+                });
+
+                // Update charts
+                updateCharts(weeklyRequests, statusCounts);
+            } catch (error) {
+                console.error("❌ Error fetching student requests:", error);
+                document.getElementById("gatePassList").innerHTML = `<p class="text-red-400">Error loading your gate pass requests. Please try again later.</p>`;
+            }
         }
 
-        renderGatePassList(); // Call initially with placeholder values
+        function updateCharts(weeklyRequests, statusCounts) {
+            // Bar Chart - Number of Gate Pass Requests Per Week
+            const ctx1 = document.getElementById("barChart").getContext("2d");
+            new Chart(ctx1, {
+                type: "bar",
+                data: {
+                    labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
+                    datasets: [{
+                        label: "Gate Pass Requests",
+                        data: weeklyRequests,
+                        backgroundColor: "rgba(255, 206, 86, 0.7)",
+                        borderColor: "rgba(255, 206, 86, 1)",
+                        borderWidth: 1
+                    }]
+                },
+                options: { responsive: true }
+            });
+
+            // Doughnut Chart - Status Breakdown
+            const ctx2 = document.getElementById("doughnutChart").getContext("2d");
+            new Chart(ctx2, {
+                type: "doughnut",
+                data: {
+                    labels: ["Pending", "Approved", "Rejected"],
+                    datasets: [{
+                        data: [statusCounts["Pending"], statusCounts["Approved"], statusCounts["Rejected"]],
+                        backgroundColor: ["yellow", "green", "red"]
+                    }]
+                },
+                options: { responsive: true }
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", fetchStudentRequests);
     </script>
 </body>
 </html>
