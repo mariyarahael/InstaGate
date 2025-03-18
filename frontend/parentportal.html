@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Parent Portal - Gate Pass</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-900 text-white">
     <div class="flex h-screen">
@@ -21,7 +22,23 @@
         <!-- Main Content -->
         <div class="flex-1 p-6">
             <h1 class="text-3xl font-bold mb-6">Gate Pass Requests</h1>
-            <div class="bg-gray-800 p-6 rounded-lg">
+
+            <div class="grid grid-cols-3 gap-6">
+                <!-- Bar Chart -->
+                <div class="bg-gray-800 p-6 rounded-lg col-span-2">
+                    <h2 class="text-xl font-semibold mb-4">Gate Pass Requests (This Month)</h2>
+                    <canvas id="barChart"></canvas>
+                </div>
+
+                <!-- Doughnut Chart -->
+                <div class="bg-gray-800 p-6 rounded-lg">
+                    <h2 class="text-xl font-semibold mb-4">Approval Status</h2>
+                    <canvas id="doughnutChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Pending Requests -->
+            <div class="bg-gray-800 p-6 rounded-lg mt-6">
                 <h2 class="text-xl font-semibold mb-4">Pending Gate Pass Requests</h2>
                 <p id="loadingMessage" class="text-gray-400">Loading gate pass requests...</p>
                 <ul id="gatePassList" class="space-y-3"></ul>
@@ -30,75 +47,88 @@
     </div>
 
     <script>
-     async function fetchParentRequests() {
-    const token = localStorage.getItem("token");
-    if (!token) {
-        console.error("🚨 No token found. Parent not logged in!");
-        alert("You are not logged in! Please log in first.");
-        return;
-    }
+    let approvedCount = 0, rejectedCount = 0;
+    let monthlyData = [0, 0, 0, 0];
 
-    try {
-        console.log("🔍 Fetching gate pass requests...");
-        const response = await fetch("http://localhost:5000/parent/requests", {
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json"
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`Server responded with status: ${response.status}`);
-        }
-
-        const requests = await response.json();
-        console.log("📢 Parent Requests:", requests);
-
-        const requestList = document.getElementById("gatePassList");
-        requestList.innerHTML = "";
-
-        if (requests.length === 0) {
-            requestList.innerHTML = `<p class="text-gray-400">No gate pass requests found.</p>`;
+    async function fetchParentRequests() {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            alert("Unauthorized: No token found. Please log in again.");
             return;
         }
 
-        requests.forEach((req) => {
-            const listItem = document.createElement("li");
-            listItem.classList.add("p-4", "bg-gray-700", "rounded-lg", "shadow-md");
+        try {
+            console.log("🔍 Fetching gate pass requests...");
+            const response = await fetch("http://localhost:5000/parent/requests", {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                }
+            });
 
-            listItem.innerHTML = `
-                <strong>Student:</strong> ${req.studentId?.fullName || "Unknown"} <br>
-                <strong>Admission No:</strong> ${req.studentId?.admno || "N/A"} <br>
-                <strong>Department:</strong> ${req.studentId?.department || "N/A"} <br>
-                <strong>Reason:</strong> ${req.reason} <br>
-                <strong>Place:</strong> ${req.place} <br>
-                <strong>Going Date:</strong> ${new Date(req.goingDate).toLocaleDateString()} <br>
-                <strong>Return Date:</strong> ${new Date(req.returnDate).toLocaleDateString()} <br>
-                <strong>Status:</strong> <span class="text-yellow-400">${req.status}</span> <br>
+            if (!response.ok) {
+                throw new Error(`Server responded with status: ${response.status}`);
+            }
 
-                <button class="bg-green-500 text-white p-2 rounded mt-2 hover:bg-green-600" onclick="approveRequest('${req._id}')">✅ Approve</button>
-                <button class="bg-red-500 text-white p-2 rounded mt-2 ml-2 hover:bg-red-600" onclick="rejectRequest('${req._id}')">❌ Reject</button>
-            `;
-            requestList.appendChild(listItem);
-        });
-    } catch (error) {
-        console.error("❌ Error fetching parent requests:", error);
-        const requestList = document.getElementById("gatePassList");
-        requestList.innerHTML = `<p class="text-red-400">Error loading gate pass requests. Please try again later.</p>`;
+            const requests = await response.json();
+            console.log("📢 Parent Requests:", requests);
+
+            const requestList = document.getElementById("gatePassList");
+            requestList.innerHTML = "";
+
+            approvedCount = 0;
+            rejectedCount = 0;
+            monthlyData = [0, 0, 0, 0];
+
+            if (requests.length === 0) {
+                requestList.innerHTML = `<p class="text-gray-400">No pending gate pass requests.</p>`;
+            }
+
+            requests.forEach((req) => {
+                const requestMonth = new Date(req.goingDate).getMonth();
+                if (req.status === "Pending Warden Approval") approvedCount++;
+                if (req.status.includes("Rejected")) rejectedCount++;
+                if (req.status === "Pending Parent Approval") {
+                    monthlyData[requestMonth % 4]++;
+                }
+
+                if (req.status !== "Pending Parent Approval") return;
+                
+                const listItem = document.createElement("li");
+                listItem.classList.add("p-4", "bg-gray-700", "rounded-lg", "shadow-md");
+
+                listItem.innerHTML = `
+                    <strong>Student:</strong> ${req.studentId?.fullName || "Unknown"} <br>
+                    <strong>Admission No:</strong> ${req.studentId?.admno || "N/A"} <br>
+                    <strong>Department:</strong> ${req.studentId?.department || "N/A"} <br>
+                    <strong>Reason:</strong> ${req.reason} <br>
+                    <strong>Place:</strong> ${req.place} <br>
+                    <strong>Going Date:</strong> ${new Date(req.goingDate).toLocaleDateString()} <br>
+                    <strong>Return Date:</strong> ${new Date(req.returnDate).toLocaleDateString()} <br>
+                    <strong>Status:</strong> <span class="text-yellow-400">${req.status}</span> <br>
+
+                    <button class="bg-green-500 text-white p-2 rounded mt-2 hover:bg-green-600" onclick="approveRequest('${req._id}')">✅ Approve</button>
+                    <button class="bg-red-500 text-white p-2 rounded mt-2 ml-2 hover:bg-red-600" onclick="rejectRequest('${req._id}')">❌ Reject</button>
+                `;
+                requestList.appendChild(listItem);
+            });
+
+            updateCharts();
+        } catch (error) {
+            console.error("❌ Error fetching parent requests:", error);
+            document.getElementById("gatePassList").innerHTML = `<p class="text-red-400">Error loading gate pass requests. Please try again later.</p>`;
+        }
     }
-}
 
-
-
-        document.addEventListener("DOMContentLoaded", fetchParentRequests);
-
-        async function approveRequest(requestId) {
+    async function approveRequest(requestId) {
     await respondToRequest(requestId, "approved");
+    alert("✅ Gate Pass Approved!");
 }
 
 async function rejectRequest(requestId) {
     await respondToRequest(requestId, "rejected");
+    alert("❌ Gate Pass Rejected!");
 }
 
 async function respondToRequest(requestId, status) {
@@ -122,15 +152,51 @@ async function respondToRequest(requestId, status) {
             throw new Error("Failed to update request");
         }
 
-        const result = await response.json();
-        alert(result.message);
-        fetchParentRequests(); // Refresh the requests list
+        if (status === "approved") {
+            approvedCount++;
+        } else {
+            rejectedCount++;
+        }
+
+        updateCharts();
+        fetchParentRequests(); // ✅ Refresh the pending requests list
     } catch (error) {
         console.error("❌ Error updating request:", error);
     }
 }
 
 
+
+    function updateCharts() {
+        new Chart(document.getElementById('barChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                datasets: [{
+                    label: 'Gate Pass Requests',
+                    data: monthlyData,
+                    backgroundColor: 'rgba(255, 206, 86, 0.7)',
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        new Chart(document.getElementById('doughnutChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Approved', 'Rejected'],
+                datasets: [{
+                    data: [approvedCount, rejectedCount],
+                    backgroundColor: ['rgba(54, 162, 235, 0.7)', 'rgba(255, 99, 132, 0.7)']
+                }]
+            },
+            options: { responsive: true }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", fetchParentRequests);
     </script>
 </body>
 </html>

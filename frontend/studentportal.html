@@ -85,12 +85,20 @@
                     listItem.classList.add("p-4", "bg-gray-700", "rounded-lg", "shadow-md");
 
                     let statusColor = "text-yellow-400"; // Default: Pending
-                    if (req.status === "Parent Approved") {
-                        statusColor = "text-green-400";
-                        statusCounts["Approved"]++;
-                    } else if (req.status.includes("Rejected")) {
+                    let statusText = req.status; // Default status
+
+                    if (req.status === "Pending Warden Approval") {
+                        statusColor = "text-blue-400";
+                        statusCounts["Approved"]++; // Considered "Approved by Parent"
+                        statusText = "✅ Pending Warden Approval";
+                    } else if (req.status === "Rejected by Parent") {
                         statusColor = "text-red-400";
                         statusCounts["Rejected"]++;
+                        statusText = "❌ Rejected by Parent";
+                    } else if (req.status === "Approved") {
+                        statusColor = "text-green-400";
+                        statusCounts["Approved"]++;
+                        statusText = "✅ Approved";
                     } else {
                         statusCounts["Pending"]++;
                     }
@@ -105,7 +113,7 @@
                         <strong>Return Date:</strong> ${new Date(req.returnDate).toLocaleDateString()} <br>
                         <strong>Reason:</strong> ${req.reason} <br>
                         <strong>Place:</strong> ${req.place} <br>
-                        <strong>Status:</strong> <span class="${statusColor}">${req.status}</span> <br>
+                        <strong>Status:</strong> <span class="${statusColor}">${statusText}</span> <br>
                     `;
                     requestList.appendChild(listItem);
                 });
