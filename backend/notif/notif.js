@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
 }); 
  
 // Function to send notification when gate pass is requested 
-async function notifyParent(studentId, parentEmail, requestDetails) { 
+async function notifyParent(studentId, parentEmail, requestDetails) {
   const mailOptions = { 
  from: 'hostel@example.com', 
  to: parentEmail, 
@@ -30,3 +30,5 @@ http://localhost:5000/login`,
   } catch (error) { 
  console.error('Error sending email:', error); 
   }
+}
+
