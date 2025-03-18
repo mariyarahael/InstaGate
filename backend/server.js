@@ -8,7 +8,7 @@ const jwt = require("jsonwebtoken");
 // Load environment variables
 dotenv.config();
 
-const app = express();
+const app = express();                  
 app.use(express.json());
 app.use(cors());
 
@@ -248,21 +248,19 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// Start server
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-
 
 const GatepassreqSchema = new mongoose.Schema({
-  requestDate: { type: Date, required: true, default: Date.now }, // Defaults to current date
-  requestTime: { type: String, required: true }, // Time as a string (e.g., "14:30")
+  studentId: { type: mongoose.Schema.Types.ObjectId, ref: "Student", required: true },
+  requestDate: { type: Date, required: true, default: Date.now },
+  requestTime: { type: String, required: true },
   passType: { type: String, required: true },
   reason: { type: String, required: true, trim: true },
   place: { type: String, required: true, trim: true },
-  goingDate: { type: Date, required: true }, 
-  goingTime: { type: String, required: true }, // Keeping time as string
-  returnDate: { type: Date, required: true }, // Removed unique constraint
-  status: { type: String, enum: ["pending", "approved", "rejected","Pending Parent Approval"], default: "pending" }, // Status tracking
-}, { timestamps: true }); // Automatically adds createdAt and updatedAt timestamps
+  goingDate: { type: Date, required: true },
+  goingTime: { type: String, required: true },
+  returnDate: { type: Date, required: true },
+  status: { type: String, enum: ["pending", "approved", "rejected", "Pending Parent Approval"], default: "Pending Parent Approval" }
+}, { timestamps: true });
 
 const GatepassRequest = mongoose.model("GatepassRequest", GatepassreqSchema);
 
@@ -278,7 +276,48 @@ module.exports = GatepassRequest;
 const authenticateUser = require("./middleware/authMiddleware");
 
 // gatepass
+app.post("/reqgatepass", authenticateUser, async (req, res) => {
+  try {
+    const { requestDate, requestTime, passType, reason, place, goingDate, goingTime, returnDate } = req.body;
+    const studentId = req.user.userId;  // Get logged-in student's ObjectId
 
+    console.log("📌 Student ObjectId:", studentId);
+
+    const student = await StudentModel.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    // Find parent using studentId
+    const parent = await ParentModel.findOne({ admno: student._id });
+    if (!parent) {
+      return res.status(404).json({ error: "Parent not found for this student" });
+    }
+
+    const newGatepass = new GatepassRequest({
+      studentId: student._id,
+      requestDate,
+      requestTime,
+      passType,
+      reason,
+      place,
+      goingDate,
+      goingTime,
+      returnDate,
+      status: "Pending Parent Approval"
+    });
+
+    await newGatepass.save();
+    res.status(201).json({ message: "✅ Gate pass request sent to parent!", gatepassRequest: newGatepass });
+
+  } catch (error) {
+    res.status(500).json({ error: "❌ Error", details: error.message });
+  }
+});
+
+
+
+/*
 app.post("/reqgatepass", authenticateUser, async (req, res) => {
   try {
     const { requestDate, requestTime, passType, reason, place, goingDate, goingTime, returnDate } = req.body;
@@ -329,17 +368,47 @@ app.post("/reqgatepass", authenticateUser, async (req, res) => {
   }
 });
 
+*/
+
+
 
 // Get all reqs
-app.get("/reqgatepass", async (req, res) => {
+app.get("/parent/requests", authenticateUser, async (req, res) => {
   try {
-    const newgatepass = await GatepassRequest.find();
-    res.json(newgatepass)
+    if (!req.user || req.user.role !== "parent") {
+      return res.status(401).json({ error: "Unauthorized: Only parents can access requests" });
+    }
+
+    // Find parent details
+    const parent = await ParentModel.findById(req.user.userId);
+    if (!parent) {
+      return res.status(404).json({ error: "Parent not found" });
+    }
+
+    console.log("📢 Parent logged in:", parent.parName);
+    
+    // Find gate pass requests where studentId matches parent’s `admno`
+    const requests = await GatepassRequest.find({ studentId: parent.admno })
+      .populate("studentId", "fullName admno department")
+      .sort({ createdAt: -1 });
+
+    if (requests.length === 0) {
+      return res.status(404).json({ error: "No gate pass requests found for your child." });
+    }
+
+    res.json(requests);
   } catch (error) {
-    res.status(500).json({ error: "❌ Error fetching reqs", details: error.message });
+    console.error("❌ Error fetching requests:", error);
+    res.status(500).json({ error: "Internal server error", details: error.message });
   }
 });
 
+
+
+
+
+
+/*
 
 app.get("/parent/requests", authenticateUser, async (req, res) => {
   try {
@@ -353,6 +422,7 @@ app.get("/parent/requests", authenticateUser, async (req, res) => {
        return res.status(404).json({ error: "Parent not found" });
    }
 
+   console.log("===parent==="+parent.parName);
    // ✅ Find only requests belonging to this parent's child
    const requests = await GatepassRequest.find({ parentId: parent._id })
    .populate("studentId", "fullName admno department") // Fetch student details
@@ -361,12 +431,16 @@ app.get("/parent/requests", authenticateUser, async (req, res) => {
 if (requests.length === 0) {
    return res.status(404).json({ error: "No pending gate pass requests found" });
 }
-
+console.log("pppppppppp=="+requests.place);
 res.json(requests);
 } catch (error) {
 console.error("❌ Error fetching requests:", error);
 res.status(500).json({ error: "Internal server error", details: error.message });
 }
+
+*/
+
+
 
 
 /*
@@ -382,8 +456,9 @@ res.status(500).json({ error: "Internal server error", details: error.message })
   }
 
 
-  */
+  
 });
+*/
 
 app.patch("/parent/respond/:id", authenticateUser, async (req, res) => {
   try {
@@ -421,9 +496,8 @@ app.patch("/parent/respond/:id", authenticateUser, async (req, res) => {
 
 
 
-
-
-
+// Start server
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 
 
 /*
