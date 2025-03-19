@@ -87,21 +87,18 @@
                     let statusColor = "text-yellow-400"; // Default: Pending
                     let statusText = req.status; // Default status
 
-                    if (req.status === "Pending Warden Approval") {
-                        statusColor = "text-blue-400";
-                        statusCounts["Approved"]++; // Considered "Approved by Parent"
-                        statusText = "✅ Pending Warden Approval";
-                    } else if (req.status === "Rejected by Parent") {
-                        statusColor = "text-red-400";
-                        statusCounts["Rejected"]++;
-                        statusText = "❌ Rejected by Parent";
-                    } else if (req.status === "Approved") {
-                        statusColor = "text-green-400";
-                        statusCounts["Approved"]++;
-                        statusText = "✅ Approved";
-                    } else {
-                        statusCounts["Pending"]++;
-                    }
+                if (req.status === "Pending Warden approval") {
+                 statusColor = "text-blue-400";
+                 statusCounts["Approved"]++; 
+                 statusText = "✅ Pending Warden Approval";
+                } else if (req.status === "Rejected by Parent") {
+                  statusColor = "text-red-400";
+                  statusCounts["Rejected"]++;
+                  statusText = "❌ Rejected by Parent";
+                } else {
+                  statusCounts["Pending"]++;
+                }
+
 
                     // Determine which week this request falls into
                     const requestDate = new Date(req.goingDate);

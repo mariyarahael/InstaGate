@@ -122,12 +122,14 @@
     }
 
     async function approveRequest(requestId) {
-    await respondToRequest(requestId, "approved");
-    alert("✅ Gate Pass Approved!");
+    await respondToRequest(requestId, "Pending Warden approval");
+    alert("✅ Gate Pass Approved! Forwarded to Warden for Final Approval.");
 }
 
+
+
 async function rejectRequest(requestId) {
-    await respondToRequest(requestId, "rejected");
+    await respondToRequest(requestId, "rejected by parent");
     alert("❌ Gate Pass Rejected!");
 }
 

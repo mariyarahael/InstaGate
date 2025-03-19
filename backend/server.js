@@ -464,49 +464,50 @@ res.status(500).json({ error: "Internal server error", details: error.message })
 // Parent approves or rejects a request
 app.patch("/parent/respond/:id", authenticateUser, async (req, res) => {
   try {
-    if (req.user.role !== "parent") {
-      return res.status(403).json({ error: "Unauthorized: Only parents can approve/reject requests" });
-    }
-
-    const { id } = req.params;
-    const { approvalStatus } = req.body;
-
-    const gatepass = await GatepassRequest.findById(id).populate("studentId");
-    if (!gatepass) {
-      return res.status(404).json({ error: "Gate pass request not found" });
-    }
-
-    const parent = await ParentModel.findById(req.user.userId);
-    if (!parent || parent.admno.toString() !== gatepass.studentId._id.toString()) {
-      return res.status(403).json({ error: "Unauthorized: You cannot approve/reject this request" });
-    }
-
-    if (approvalStatus === "approved") {
-      gatepass.status = "Pending Warden Approval"; // ✅ Status updated for warden processing
-
-      // ✅ Forward request to Warden based on student's hostel
-      const warden = await WardenModel.findOne({ hostelName: gatepass.studentId.hostelName });
-      if (!warden) {
-        return res.status(404).json({ error: "Warden not found for this hostel" });
+      if (req.user.role !== "parent") {
+          return res.status(403).json({ error: "Unauthorized: Only parents can approve/reject requests" });
       }
 
-      gatepass.wardenId = warden._id; // Assign Warden ID
-    } else {
-      gatepass.status = "Rejected by Parent"; // ❌ Mark request as rejected
-    }
+      const { id } = req.params;
+      const { approvalStatus } = req.body;
+      console.log(req.body)
 
-    await gatepass.save(); // ✅ Save status change to database
+      const gatepass = await GatepassRequest.findById(id).populate("studentId");
+      if (!gatepass) {
+          return res.status(404).json({ error: "Gate pass request not found" });
+      }
 
-    // ✅ Notify Student & Warden (Console Logs - Replace with actual notification)
-    console.log(`📢 Student Notification: Your gate pass is now ${gatepass.status}`);
-    console.log(`📢 Warden Notification: New request marked as ${gatepass.status}`);
+      const parent = await ParentModel.findById(req.user.userId);
+      if (!parent || parent.admno.toString() !== gatepass.studentId._id.toString()) {
+          return res.status(403).json({ error: "Unauthorized: You cannot approve/reject this request" });
+      }
 
-    res.json({ message: `✅ Request ${gatepass.status}`, gatepass });
+      // ✅ Update status to "Pending Warden Approval" or "Rejected by Parent"
+      if (approvalStatus === "Pending Warden Approval") {
+          gatepass.status = "Pending Warden Approval"; 
 
+
+          // Find Warden for student's hostel
+          const warden = await WardenModel.findOne({ hostelName: gatepass.studentId.hostelName });
+          if (!warden) {
+              return res.status(404).json({ error: "Warden not found for this hostel" });
+          }
+          gatepass.wardenId = warden._id;
+      } else {
+          gatepass.status = "Rejected by Parent";
+      }
+
+      await gatepass.save(); // ✅ Save updated status in DB
+
+      // ✅ Notify Student
+      console.log(`📢 Student Notification: Your gate pass is now ${gatepass.status}`);
+
+      res.json({ message: `✅ Request ${gatepass.status}`, gatepass });
   } catch (error) {
-    res.status(500).json({ error: "❌ Error updating request", details: error.message });
+      res.status(500).json({ error: "❌ Error updating request", details: error.message });
   }
 });
+
 
 
 
