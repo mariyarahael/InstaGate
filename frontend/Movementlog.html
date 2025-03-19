@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movement Log</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        async function fetchMovementLogs() {
+            try {
+                let response = await fetch("http://localhost:5000/api/student-logs"); // API URL
+                let data = await response.json();
+                
+                const tableBody = document.getElementById("homeTable");
+                tableBody.innerHTML = ""; // Clear existing rows
+
+                data.forEach((student, index) => {
+                    const row = document.createElement("tr");
+                    row.classList.add("bg-gray-700");
+
+                    row.innerHTML = `
+                        <td class="border border-gray-700 p-2">${student.name}</td>
+                        <td class="border border-gray-700 p-2">${student.id}</td>
+                        <td class="border border-gray-700 p-2">${student.room_no}</td>
+                        <td class="border border-gray-700 p-2">${student.leave_time}</td>
+                        <td class="border border-gray-700 p-2" id="status-${index}">
+                            <button onclick="toggleSelection(${index}, true)" class="bg-green-500 hover:bg-green-700 text-white px-3 py-1 rounded">✔</button>
+                            <button onclick="toggleSelection(${index}, false)" class="bg-red-500 hover:bg-red-700 text-white px-3 py-1 rounded">✖</button>
+                        </td>
+                        <td class="border border-gray-700 p-2">
+                            <button onclick="window.location.href='gatepasspdf.html'" 
+                                    class="bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded">
+                                View
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error("Error fetching home logs:", error);
+            }
+        }
+
+        function toggleSelection(rowId, isAccepted) {
+            const statusCell = document.getElementById(`status-${rowId}`);
+            if (isAccepted) {
+                statusCell.innerHTML = "<span class='text-green-500 text-lg'>✔</span>";
+            } else {
+                statusCell.innerHTML = "<span class='text-red-500 text-lg'>✖</span>";
+            }
+        }
+
+        // Fetch data when the page loads
+        window.onload = fetchMovementLogs;
+    </script>
+</head>
+<body class="bg-gray-900 text-white p-6">
+
+    <!-- Page Title -->
+    <h1 class="text-3xl font-bold mb-4">Movement Log</h1>
+
+    <!-- Search Section -->
+    <div class="flex justify-between items-center mb-4">
+        <input type="text" id="search" placeholder="Search by Name or Id" 
+               class="p-2 rounded text-black w-1/3">
+    </div>
+
+    <!-- Movement Log Table -->
+    <div class="overflow-x-auto">
+        <table class="table-auto w-full border-collapse border border-gray-700">
+            <thead>
+                <tr class="bg-gray-800">
+                    <th class="border border-gray-700 p-2">Name</th>
+                    <th class="border border-gray-700 p-2">Id</th>
+                    <th class="border border-gray-700 p-2">Room No</th>
+                    <th class="border border-gray-700 p-2">Date & Time of Leaving</th>
+                    <th class="border border-gray-700 p-2">Accept or Reject</th>
+                    <th class="border border-gray-700 p-2">Gate Pass</th>
+                </tr>
+            </thead>
+            <tbody id="MovementTable">
+                <!-- Data will be dynamically inserted here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Back Button -->
+    <a href="Warden_gatepass.html" class="text-blue-400 hover:underline mt-4 inline-block">Go Back</a>
+
+</body>
+</html>

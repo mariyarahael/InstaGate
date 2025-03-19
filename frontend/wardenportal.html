@@ -3,97 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gate Pass System</title>
+    <title>Gate Pass System - Warden Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="flex items-center justify-center min-h-screen bg-gray-900">
-    <div class="flex bg-gray-800 text-white rounded-xl shadow-lg w-full max-w-5xl">
-        
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen">
         <!-- Sidebar -->
-        <div class="hidden md:flex flex-col justify-between p-8 bg-gray-700 rounded-l-xl w-1/3">
-            <h2 class="text-3xl font-extrabold text-blue-400">👋 Hi, Warden!</h2>
-            <p class="text-gray-400 mt-2">Last login: Today</p>
-            <div class="flex-grow flex flex-col justify-center mt-4">
-                <a href="#profile" class="block py-3 px-4 bg-gray-600 hover:bg-gray-500 rounded-xl text-center">Profile</a>
-                <a href="#settings" class="block py-3 px-4 bg-gray-600 hover:bg-gray-500 rounded-xl text-center mt-2">Settings</a>
-            </div>
+        <div class="w-1/5 bg-gray-800 p-6 flex flex-col space-y-6">
+            <h2 class="text-2xl font-bold text-yellow-400">Warden Dashboard</h2>
+            <nav class="space-y-4">
+                <a href="profile.html" class="block p-3 bg-gray-700 rounded-lg hover:bg-yellow-400 hover:text-gray-900">👤 Edit Profile</a>
+                <a href="student-log.html" class="block p-3 bg-gray-700 rounded-lg hover:bg-yellow-400 hover:text-gray-900">📋 Student Log</a>
+                <a href="homelog.html" class="block p-3 bg-gray-700 rounded-lg hover:bg-yellow-400 hover:text-gray-900">🏠 Home Log</a>
+                <a href="movementlog.html" class="block p-3 bg-gray-700 rounded-lg hover:bg-yellow-400 hover:text-gray-900">🚶 Movement Log</a>
+                <a href="pending-requests.html" class="block p-3 bg-gray-700 rounded-lg hover:bg-yellow-400 hover:text-gray-900">⏳ Pending Requests</a>
+            </nav>
         </div>
-        
+
         <!-- Main Content -->
-        <div class="w-full md:w-2/3 p-8">
-            
-            <!-- Statistics Section -->
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <div class="bg-gray-700 p-4 rounded-lg text-center">
-                    <h3 class="text-lg font-bold">🚶‍♂ Students Outside</h3>
-                    <p class="text-2xl font-extrabold text-yellow-400" id="studentsOutside">--</p>
+        <div class="flex-1 p-6">
+            <h1 class="text-3xl font-bold mb-6">Gate Pass Overview</h1>
+            <div class="grid grid-cols-3 gap-6">
+                <!-- Graph -->
+                <div class="bg-gray-800 p-6 rounded-lg col-span-2">
+                    <h2 class="text-xl font-semibold mb-4">Students Currently Outside</h2>
+                    <canvas id="barChart"></canvas>
                 </div>
-                <div class="bg-gray-700 p-4 rounded-lg text-center">
-                    <h3 class="text-lg font-bold">📜 Pending Passes</h3>
-                    <p class="text-2xl font-extrabold text-red-400" id="pendingPasses">--</p>
+
+                <!-- Circle Chart -->
+                <div class="bg-gray-800 p-6 rounded-lg">
+                    <h2 class="text-xl font-semibold mb-4">Gate Pass Approval Status</h2>
+                    <canvas id="doughnutChart"></canvas>
                 </div>
             </div>
 
-            <!-- Notifications -->
-            <div class="bg-gray-700 p-4 rounded-lg mb-6">
-                <h3 class="text-lg font-bold">🔔 Notifications</h3>
-                <ul class="mt-2" id="notifications">
+            <!-- Pending Approvals List -->
+            <div class="bg-gray-800 p-6 rounded-lg mt-6">
+                <h2 class="text-xl font-semibold mb-4">Pending Gate Pass Requests</h2>
+                <ul id="pendingRequests" class="space-y-3 text-gray-300">
                     <li class="text-gray-400">Loading...</li>
                 </ul>
-            </div>
-
-            <!-- Buttons -->
-            <div class="grid grid-cols-2 gap-4">
-                <button class="w-full py-6 bg-blue-600 hover:bg-blue-500 rounded-xl text-lg font-semibold">🚖 Book a Cab</button>
-                <a href="student-log.html" class="w-full py-6 bg-blue-600 hover:bg-blue-500 rounded-xl text-lg font-semibold text-center block">
-                    Student Log
-                </a>
-                <button class="w-full py-6 bg-blue-600 hover:bg-blue-500 rounded-xl text-lg font-semibold">🏠 Home Log</button>
-                <button class="w-full py-6 bg-blue-600 hover:bg-blue-500 rounded-xl text-lg font-semibold">📍 Movement Log</button>
             </div>
         </div>
     </div>
 
-    <!-- Dark Mode Script -->
     <script>
-        function toggleDarkMode() {
-            document.body.classList.toggle("bg-gray-100");
-            document.body.classList.toggle("text-black");
-        }
-
-        // Function to fetch data from backend
-        async function fetchData() {
+        async function fetchWardenData() {
             try {
-                const response = await fetch("your-backend-api-url/stats");
-                const data = await response.json();
+                const token = localStorage.getItem("token");
+                if (!token) {
+                    alert("Unauthorized: No token found. Please log in again.");
+                    return;
+                }
 
-                document.getElementById("studentsOutside").innerText = data.studentsOutside || "--";
-                document.getElementById("pendingPasses").innerText = data.pendingPasses || "--";
+                const response = await fetch("http://localhost:5000/warden/stats", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch warden data");
+                }
+
+                const data = await response.json();
+                updateCharts([data.studentsOutside || 0], { "Pending": data.pendingPasses || 0, "Approved": data.approvedPasses || 0 });
+                updatePendingRequests(data.pendingRequests || []);
             } catch (error) {
                 console.error("Error fetching stats:", error);
             }
         }
 
-        // Function to fetch notifications
-        async function fetchNotifications() {
-            try {
-                const response = await fetch("your-backend-api-url/notifications");
-                const data = await response.json();
+        function updateCharts(barData, statusCounts) {
+            const ctx1 = document.getElementById("barChart").getContext("2d");
+            new Chart(ctx1, {
+                type: "bar",
+                data: { labels: ["Outside"], datasets: [{ label: "Students Outside", data: barData, backgroundColor: "yellow" }] },
+                options: { responsive: true }
+            });
+
+            const ctx2 = document.getElementById("doughnutChart").getContext("2d");
+            new Chart(ctx2, {
+                type: "doughnut",
+                data: { labels: ["Pending", "Approved"], datasets: [{ data: [statusCounts["Pending"], statusCounts["Approved"]], backgroundColor: ["yellow", "green"] }] },
+                options: { responsive: true }
+            });
+        }
+
+        function updatePendingRequests(requests) {
+            const requestList = document.getElementById("pendingRequests");
+            requestList.innerHTML = "";
+            
+            if (requests.length === 0) {
+                requestList.innerHTML = `<p class="text-gray-400">No pending requests.</p>`;
+                return;
+            }
+            
+            requests.forEach((req) => {
+                const listItem = document.createElement("li");
+                listItem.classList.add("p-4", "bg-gray-700", "rounded-lg", "shadow-md");
                 
-                const notificationList = document.getElementById("notifications");
-                notificationList.innerHTML = data.length 
-                    ? data.map(n => `<li class="text-gray-400">${n.message}</li>`).join("") 
-                    : "<li class='text-gray-400'>No new notifications</li>";
+                listItem.innerHTML = `
+                    <strong>Student:</strong> ${req.studentName} <br>
+                    <strong>Going Date:</strong> ${new Date(req.goingDate).toLocaleDateString()} <br>
+                    <strong>Return Date:</strong> ${new Date(req.returnDate).toLocaleDateString()} <br>
+                    <strong>Reason:</strong> ${req.reason} <br>
+                    <strong>Place:</strong> ${req.place} <br>
+                    <button class="mt-2 p-2 bg-green-500 text-white rounded" onclick="approveRequest('${req.id}')">Approve</button>
+                    <button class="mt-2 p-2 bg-red-500 text-white rounded" onclick="rejectRequest('${req.id}')">Reject</button>
+                `;
+                requestList.appendChild(listItem);
+            });
+        }
+
+        async function approveRequest(requestId) {
+            try {
+                await fetch(`http://localhost:5000/warden/approve/${requestId}`, {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+                });
+                alert("Request Approved!");
+                fetchWardenData();
             } catch (error) {
-                console.error("Error fetching notifications:", error);
+                console.error("Error approving request:", error);
             }
         }
 
-        // Fetch all data when the page loads
-        window.onload = function() {
-            fetchData();
-            fetchNotifications();
-        };
+        async function rejectRequest(requestId) {
+            try {
+                await fetch(`http://localhost:5000/warden/reject/${requestId}`, {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+                });
+                alert("Request Rejected!");
+                fetchWardenData();
+            } catch (error) {
+                console.error("Error rejecting request:", error);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", fetchWardenData);
     </script>
 </body>
 </html>
